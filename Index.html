@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Prescription</title>
+    <!-- Importing a handwriting font for the Rx section -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           GLOBAL & LAYOUT STYLES
+           ========================================= */
+        html, body {
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.3s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: #003d82;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* =========================================
+           CONTAINER (BACKGROUND IMAGE)
+           ========================================= */
+        .prescription-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Limits max size on large screens */
+            /* The aspect ratio of the image (approx 719x1024) */
+            aspect-ratio: 719 / 1024;
+            background-image: url('18383.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background-color: white; 
+            container-type: inline-size; /* Allows font scaling based on container width */
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        /* =========================================
+           INPUT FIELDS STYLING
+           ========================================= */
+        .overlay-input {
+            position: absolute;
+            background: transparent;
+            border: 1px dashed rgba(0,0,0,0.2); /* Subtle indicator of editable areas */
+            font-family: inherit;
+            font-size: 2cqw; /* Responsive font based on container width */
+            color: #1a1a1a;
+            padding: 2px 6px;
+            box-sizing: border-box;
+            transition: border 0.2s, background 0.2s;
+            border-radius: 3px;
+            z-index: 10;
+        }
+
+        /* Hover and Focus effects for usability */
+        .overlay-input:hover {
+            border: 1px dashed rgba(0, 86, 179, 0.5);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .overlay-input:focus {
+            outline: none;
+            border: 1px solid #0056b3;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+        }
+
+        textarea.overlay-input {
+            resize: none;
+            line-height: 1.4;
+        }
+
+        /* Styling for the Rx area specifically (Handwriting effect) */
+        #rx-area {
+            overflow-y: auto;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            font-family: 'Caveat', cursive; /* Handwriting font */
+            font-size: 3.5cqw; /* Slightly larger because handwriting fonts render smaller */
+            font-weight: 500;
+            color: #0f172a; /* Slightly darker ink color */
+        }
+
+        #rx-area:empty:before {
+            content: attr(data-placeholder);
+            color: #888;
+            pointer-events: none;
+            display: block;
+            font-family: 'Segoe UI', sans-serif; /* Keep placeholder standard font */
+            font-size: 2.2cqw;
+        }
+
+        /* =========================================
+           POSITIONING (ADJUST TOP, LEFT, WIDTH, HEIGHT)
+           ========================================= */
+        
+        /* --- Top Band (Patient Info) --- */
+        #patient-name { top: 29.75%; left: 66.5%; width: 18%; height: 2.8%; }
+        #patient-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; }
+        #patient-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; }
+        #patient-date { top: 29.75%; left: 7.5%;  width: 13%; height: 2.8%; }
+
+        /* --- Left Column (Vitals) --- */
+        #bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
+        #pr     { top: 36.8%; left: 13%; width: 16%; height: 1.8%; }
+        #hr     { top: 39.9%; left: 13%; width: 16%; height: 1.8%; }
+        #rr     { top: 43.0%; left: 13%; width: 16%; height: 1.8%; }
+        #temp   { top: 46.2%; left: 15%; width: 14%; height: 1.8%; }
+        #spo2   { top: 49.4%; left: 14%; width: 15%; height: 1.8%; }
+        #weight { top: 52.6%; left: 18%; width: 11%; height: 1.8%; }
+
+        /* --- Additional Sections (Textareas) --- */
+        #clinical-record { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
+        #impression      { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
+
+        /* --- Rx Main Area --- */
+        #rx-area { top: 40%; left: 34%; width: 62%; height: 48%; }
+
+        /* =========================================
+           PRINT STYLES
+           ========================================= */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                background-color: white;
+                overflow: hidden; /* Strictly prevent creating a second page */
+            }
+            .controls {
+                display: none; /* Hide print button */
+            }
+            .prescription-container {
+                max-width: none;
+                width: 100vw;
+                height: 100vh; /* Force container to exactly 1 page height */
+                aspect-ratio: auto;
+                background-size: 100% 100%; /* Stretch perfectly to fit A4 without overflow */
+                box-shadow: none;
+                border-radius: 0;
+                /* Force background image to print in Chrome/Edge/Safari/Android */
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+            .overlay-input {
+                border: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+            }
+            #rx-area:empty:before {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="btn" onclick="window.print()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            Print
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="prescription-container" id="prescriptionContainer">
+        
+        <!-- Top Band (RTL inputs for Persian/Pashto text orientation) -->
+        <input type="text" id="patient-name" class="overlay-input" dir="rtl" placeholder="اسم">
+        <input type="text" id="patient-age" class="overlay-input" dir="rtl" placeholder="سن">
+        <input type="text" id="patient-sex" class="overlay-input" dir="rtl" placeholder="جنس">
+        <!-- Date field is kept Left-to-Right for standard number formatting -->
+        <input type="text" id="patient-date" class="overlay-input" dir="ltr" placeholder="MM/DD">
+
+        <!-- Vitals (Left Column) -->
+        <input type="text" id="bp" class="overlay-input">
+        <input type="text" id="pr" class="overlay-input">
+        <input type="text" id="hr" class="overlay-input">
+        <input type="text" id="rr" class="overlay-input">
+        <input type="text" id="temp" class="overlay-input">
+        <input type="text" id="spo2" class="overlay-input">
+        <input type="text" id="weight" class="overlay-input">
+
+        <!-- Text Areas for Clinical Record and Impression -->
+        <textarea id="clinical-record" class="overlay-input"></textarea>
+        <textarea id="impression" class="overlay-input"></textarea>
+
+        <!-- Rx Area (Content Editable Div for free text styling) -->
+        <div id="rx-area" class="overlay-input" contenteditable="true" spellcheck="false" data-placeholder="Start typing prescription here..."></div>
+
+    </div>
+
+</body>
+</html>
+
+
