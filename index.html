@@ -3,66 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Prescription</title>
-    <!-- Importing a handwriting font for the Rx section -->
+    <title>Prescription Generator</title>
+    <!-- Handwriting font for the Rx section -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" rel="stylesheet">
     <style>
         /* =========================================
-           GLOBAL & LAYOUT STYLES
+           GLOBAL STYLES
            ========================================= */
+        :root {
+            --primary-color: #0056b3;
+            --primary-hover: #003d82;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+
         html, body {
-            background-color: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: var(--bg-color);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            color: var(--text-color);
             box-sizing: border-box;
         }
 
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-
-        .btn {
-            background-color: #0056b3;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: background 0.3s, transform 0.1s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            background-color: #003d82;
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(1px);
+        *, *::before, *::after {
+            box-sizing: inherit;
         }
 
         /* =========================================
-           CONTAINER (BACKGROUND IMAGE)
+           DATA ENTRY FORM VIEW
            ========================================= */
+        #form-view {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex; /* Default state */
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 80px; /* Space for sticky button */
+        }
+
+        .header-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .form-section {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--primary-color);
+        }
+
+        .form-section h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .form-group input, 
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        #form-rx {
+            min-height: 150px;
+            font-family: 'Caveat', cursive;
+            font-size: 1.5rem;
+            line-height: 1.4;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 15px; }
+
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        /* =========================================
+           PREVIEW & PRINT VIEW
+           ========================================= */
+        #preview-view {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .preview-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            justify-content: center;
+        }
+
         .prescription-container {
             position: relative;
             width: 100%;
-            max-width: 800px; /* Limits max size on large screens */
-            /* The aspect ratio of the image (approx 719x1024) */
+            max-width: 800px; 
             aspect-ratio: 719 / 1024;
             background-image: url('18383.jpg'); 
             background-size: cover;
@@ -70,91 +186,61 @@
             background-repeat: no-repeat;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             background-color: white; 
-            container-type: inline-size; /* Allows font scaling based on container width */
+            container-type: inline-size; 
             border-radius: 4px;
             overflow: hidden;
         }
 
-        /* =========================================
-           INPUT FIELDS STYLING
-           ========================================= */
-        .overlay-input {
+        /* Overlay Text Blocks (Instead of inputs) */
+        .overlay-text {
             position: absolute;
-            background: transparent;
-            border: 1px dashed rgba(0,0,0,0.2); /* Subtle indicator of editable areas */
             font-family: inherit;
-            font-size: 2cqw; /* Responsive font based on container width */
+            font-size: 2cqw;
             color: #1a1a1a;
             padding: 2px 6px;
             box-sizing: border-box;
-            transition: border 0.2s, background 0.2s;
-            border-radius: 3px;
             z-index: 10;
+            overflow: hidden;
+            white-space: nowrap; /* Prevent wrapping for small inputs */
         }
 
-        /* Hover and Focus effects for usability */
-        .overlay-input:hover {
-            border: 1px dashed rgba(0, 86, 179, 0.5);
-            background: rgba(255, 255, 255, 0.6);
+        .overlay-textarea {
+            white-space: pre-wrap; /* Allow wrapping for large text areas */
+            overflow-y: hidden;
         }
 
-        .overlay-input:focus {
-            outline: none;
-            border: 1px solid #0056b3;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
-        }
-
-        textarea.overlay-input {
-            resize: none;
-            line-height: 1.4;
-        }
-
-        /* Styling for the Rx area specifically (Handwriting effect) */
-        #rx-area {
-            overflow-y: auto;
+        /* Handwriting effect for Rx */
+        #prev-rx {
+            font-family: 'Caveat', cursive;
+            font-size: 3.5cqw; 
+            font-weight: 500;
+            color: #0f172a; 
             line-height: 1.4;
             white-space: pre-wrap;
-            font-family: 'Caveat', cursive; /* Handwriting font */
-            font-size: 3.5cqw; /* Slightly larger because handwriting fonts render smaller */
-            font-weight: 500;
-            color: #0f172a; /* Slightly darker ink color */
-        }
-
-        #rx-area:empty:before {
-            content: attr(data-placeholder);
-            color: #888;
-            pointer-events: none;
-            display: block;
-            font-family: 'Segoe UI', sans-serif; /* Keep placeholder standard font */
-            font-size: 2.2cqw;
         }
 
         /* =========================================
-           POSITIONING (ADJUST TOP, LEFT, WIDTH, HEIGHT)
+           POSITIONING (EXACT A4 ALIGNMENT)
            ========================================= */
-        
-        /* --- Top Band (Patient Info) --- */
-        #patient-name { top: 29.75%; left: 66.5%; width: 18%; height: 2.8%; }
-        #patient-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; }
-        #patient-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; }
-        #patient-date { top: 29.75%; left: 7.5%;  width: 13%; height: 2.8%; }
+        /* --- Top Band --- */
+        #prev-name { top: 29.75%; left: 66.5%; width: 18%; height: 2.8%; text-align: right; }
+        #prev-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
+        #prev-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
+        #prev-date { top: 29.75%; left: 7.5%;  width: 13%; height: 2.8%; text-align: left; }
 
         /* --- Left Column (Vitals) --- */
-        #bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
-        #pr     { top: 36.8%; left: 13%; width: 16%; height: 1.8%; }
-        #hr     { top: 39.9%; left: 13%; width: 16%; height: 1.8%; }
-        #rr     { top: 43.0%; left: 13%; width: 16%; height: 1.8%; }
-        #temp   { top: 46.2%; left: 15%; width: 14%; height: 1.8%; }
-        #spo2   { top: 49.4%; left: 14%; width: 15%; height: 1.8%; }
-        #weight { top: 52.6%; left: 18%; width: 11%; height: 1.8%; }
+        #prev-bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-pr     { top: 36.8%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-hr     { top: 39.9%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-rr     { top: 43.0%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-temp   { top: 46.2%; left: 15%; width: 14%; height: 1.8%; }
+        #prev-spo2   { top: 49.4%; left: 14%; width: 15%; height: 1.8%; }
+        #prev-weight { top: 52.6%; left: 18%; width: 11%; height: 1.8%; }
 
-        /* --- Additional Sections (Textareas) --- */
-        #clinical-record { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
-        #impression      { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
-
-        /* --- Rx Main Area --- */
-        #rx-area { top: 40%; left: 34%; width: 62%; height: 48%; }
+        /* --- Textareas --- */
+        #prev-record     { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
+        #prev-impression { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
+        #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
 
         /* =========================================
            PRINT STYLES
@@ -170,79 +256,199 @@
                 margin: 0;
                 padding: 0;
                 background-color: white;
-                overflow: hidden; /* Strictly prevent creating a second page */
+                overflow: hidden; 
             }
-            .controls {
-                display: none; /* Hide print button */
+            #form-view, .preview-controls {
+                display: none !important; 
+            }
+            #preview-view {
+                display: block !important;
+                padding: 0;
             }
             .prescription-container {
                 max-width: none;
                 width: 100vw;
-                height: 100vh; /* Force container to exactly 1 page height */
+                height: 100vh; 
                 aspect-ratio: auto;
-                background-size: 100% 100%; /* Stretch perfectly to fit A4 without overflow */
+                background-size: 100% 100%; 
                 box-shadow: none;
                 border-radius: 0;
-                /* Force background image to print in Chrome/Edge/Safari/Android */
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
                 color-adjust: exact !important;
                 page-break-after: avoid;
                 page-break-inside: avoid;
             }
-            .overlay-input {
-                border: none !important;
-                background: transparent !important;
-                box-shadow: none !important;
-            }
-            #rx-area:empty:before {
-                display: none;
-            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Controls -->
-    <div class="controls">
-        <button class="btn" onclick="window.print()">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                <rect x="6" y="14" width="12" height="8"></rect>
-            </svg>
-            Print
-        </button>
+    <!-- ==========================================
+         VIEW 1: DATA ENTRY FORM
+         ========================================== -->
+    <div id="form-view">
+        <h2 class="header-title">Create Prescription</h2>
+
+        <!-- Patient Info -->
+        <div class="form-section">
+            <h3>Patient Information</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>اسم (Name)</label>
+                    <input type="text" id="form-name" dir="rtl" placeholder="اسم بیمار">
+                </div>
+                <div class="form-group">
+                    <label>تاریخ (Date)</label>
+                    <input type="text" id="form-date" dir="ltr" placeholder="MM/DD">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>سن (Age)</label>
+                    <input type="text" id="form-age" dir="rtl" placeholder="سن">
+                </div>
+                <div class="form-group">
+                    <label>جنس (Sex)</label>
+                    <input type="text" id="form-sex" dir="rtl" placeholder="مرد/زن">
+                </div>
+            </div>
+        </div>
+
+        <!-- Vitals -->
+        <div class="form-section">
+            <h3>Vitals</h3>
+            <div class="grid-4">
+                <div class="form-group"><label>BP</label><input type="text" id="form-bp"></div>
+                <div class="form-group"><label>PR</label><input type="text" id="form-pr"></div>
+                <div class="form-group"><label>HR</label><input type="text" id="form-hr"></div>
+                <div class="form-group"><label>RR</label><input type="text" id="form-rr"></div>
+            </div>
+            <div class="grid-3">
+                <div class="form-group"><label>Temp</label><input type="text" id="form-temp"></div>
+                <div class="form-group"><label>SpO2</label><input type="text" id="form-spo2"></div>
+                <div class="form-group"><label>Weight</label><input type="text" id="form-weight"></div>
+            </div>
+        </div>
+
+        <!-- Clinical Notes -->
+        <div class="form-section">
+            <h3>Clinical Notes</h3>
+            <div class="form-group">
+                <label>Clinical Record</label>
+                <textarea id="form-record" placeholder="Enter clinical record..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Impression</label>
+                <textarea id="form-impression" placeholder="Enter impression..."></textarea>
+            </div>
+        </div>
+
+        <!-- Prescription (Rx) -->
+        <div class="form-section">
+            <h3>Prescription (Rx)</h3>
+            <div class="form-group">
+                <textarea id="form-rx" placeholder="1. Medicine A - 1x/day&#10;2. Medicine B - 2x/day"></textarea>
+            </div>
+        </div>
+
+        <!-- Sticky Action Bar -->
+        <div class="action-bar">
+            <button class="btn" onclick="generatePreview()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                Preview & Print
+            </button>
+        </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="prescription-container" id="prescriptionContainer">
-        
-        <!-- Top Band (RTL inputs for Persian/Pashto text orientation) -->
-        <input type="text" id="patient-name" class="overlay-input" dir="rtl" placeholder="اسم">
-        <input type="text" id="patient-age" class="overlay-input" dir="rtl" placeholder="سن">
-        <input type="text" id="patient-sex" class="overlay-input" dir="rtl" placeholder="جنس">
-        <!-- Date field is kept Left-to-Right for standard number formatting -->
-        <input type="text" id="patient-date" class="overlay-input" dir="ltr" placeholder="MM/DD">
 
-        <!-- Vitals (Left Column) -->
-        <input type="text" id="bp" class="overlay-input">
-        <input type="text" id="pr" class="overlay-input">
-        <input type="text" id="hr" class="overlay-input">
-        <input type="text" id="rr" class="overlay-input">
-        <input type="text" id="temp" class="overlay-input">
-        <input type="text" id="spo2" class="overlay-input">
-        <input type="text" id="weight" class="overlay-input">
+    <!-- ==========================================
+         VIEW 2: PREVIEW & PRINT LAYOUT
+         ========================================== -->
+    <div id="preview-view">
+        <div class="preview-controls">
+            <button class="btn btn-secondary" onclick="backToEdit()" style="max-width: 200px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Back to Edit
+            </button>
+            <button class="btn" onclick="window.print()" style="max-width: 200px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Print Now
+            </button>
+        </div>
 
-        <!-- Text Areas for Clinical Record and Impression -->
-        <textarea id="clinical-record" class="overlay-input"></textarea>
-        <textarea id="impression" class="overlay-input"></textarea>
+        <div class="prescription-container" id="prescriptionContainer">
+            <!-- Top Band -->
+            <div id="prev-name" class="overlay-text" dir="rtl"></div>
+            <div id="prev-age" class="overlay-text" dir="rtl"></div>
+            <div id="prev-sex" class="overlay-text" dir="rtl"></div>
+            <div id="prev-date" class="overlay-text" dir="ltr"></div>
 
-        <!-- Rx Area (Content Editable Div for free text styling) -->
-        <div id="rx-area" class="overlay-input" contenteditable="true" spellcheck="false" data-placeholder="Start typing prescription here..."></div>
+            <!-- Left Column (Vitals) -->
+            <div id="prev-bp" class="overlay-text"></div>
+            <div id="prev-pr" class="overlay-text"></div>
+            <div id="prev-hr" class="overlay-text"></div>
+            <div id="prev-rr" class="overlay-text"></div>
+            <div id="prev-temp" class="overlay-text"></div>
+            <div id="prev-spo2" class="overlay-text"></div>
+            <div id="prev-weight" class="overlay-text"></div>
 
+            <!-- Text Areas -->
+            <div id="prev-record" class="overlay-text overlay-textarea"></div>
+            <div id="prev-impression" class="overlay-text overlay-textarea"></div>
+
+            <!-- Rx Area -->
+            <div id="prev-rx" class="overlay-text overlay-textarea"></div>
+        </div>
     </div>
 
+    <!-- ==========================================
+         JAVASCRIPT LOGIC
+         ========================================== -->
+    <script>
+        function generatePreview() {
+            // Map of form IDs to preview IDs
+            const fields = [
+                { form: 'form-name', prev: 'prev-name' },
+                { form: 'form-age', prev: 'prev-age' },
+                { form: 'form-sex', prev: 'prev-sex' },
+                { form: 'form-date', prev: 'prev-date' },
+                { form: 'form-bp', prev: 'prev-bp' },
+                { form: 'form-pr', prev: 'prev-pr' },
+                { form: 'form-hr', prev: 'prev-hr' },
+                { form: 'form-rr', prev: 'prev-rr' },
+                { form: 'form-temp', prev: 'prev-temp' },
+                { form: 'form-spo2', prev: 'prev-spo2' },
+                { form: 'form-weight', prev: 'prev-weight' },
+                { form: 'form-record', prev: 'prev-record' },
+                { form: 'form-impression', prev: 'prev-impression' },
+                { form: 'form-rx', prev: 'prev-rx' }
+            ];
+
+            // Transfer values from form to preview divs
+            fields.forEach(field => {
+                const formElement = document.getElementById(field.form);
+                const prevElement = document.getElementById(field.prev);
+                
+                if (formElement && prevElement) {
+                    prevElement.innerText = formElement.value;
+                }
+            });
+
+            // Switch views
+            document.getElementById('form-view').style.display = 'none';
+            document.getElementById('preview-view').style.display = 'flex';
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function backToEdit() {
+            // Switch views back
+            document.getElementById('preview-view').style.display = 'none';
+            document.getElementById('form-view').style.display = 'flex';
+        }
+    </script>
 </body>
 </html>
 
