@@ -226,7 +226,10 @@
         #prev-name { top: 29.75%; left: 66.5%; width: 18%; height: 2.8%; text-align: right; }
         #prev-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
         #prev-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
-        #prev-date { top: 29.75%; left: 7.5%;  width: 13%; height: 2.8%; text-align: left; }
+        
+        /* The Date fields specifically slotted between the two slashes */
+        #prev-month { top: 29.75%; left: 8.5%; width: 3.5%; height: 2.8%; text-align: center; }
+        #prev-day   { top: 29.75%; left: 12.5%; width: 4.5%; height: 2.8%; text-align: center; }
 
         /* --- Left Column (Vitals) --- */
         #prev-bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
@@ -299,8 +302,8 @@
                     <input type="text" id="form-name" dir="rtl" placeholder="اسم بیمار">
                 </div>
                 <div class="form-group">
-                    <label>تاریخ (Date)</label>
-                    <input type="text" id="form-date" dir="ltr" placeholder="MM/DD">
+                    <label>تاریخ (Date) - MM/DD</label>
+                    <input type="text" id="form-date" dir="ltr" placeholder="MM / DD" maxlength="7">
                 </div>
             </div>
             <div class="grid-2">
@@ -382,7 +385,10 @@
             <div id="prev-name" class="overlay-text" dir="rtl"></div>
             <div id="prev-age" class="overlay-text" dir="rtl"></div>
             <div id="prev-sex" class="overlay-text" dir="rtl"></div>
-            <div id="prev-date" class="overlay-text" dir="ltr"></div>
+            
+            <!-- Splitting the Date Output -->
+            <div id="prev-month" class="overlay-text"></div>
+            <div id="prev-day" class="overlay-text"></div>
 
             <!-- Left Column (Vitals) -->
             <div id="prev-bp" class="overlay-text"></div>
@@ -406,13 +412,24 @@
          JAVASCRIPT LOGIC
          ========================================== -->
     <script>
+        // Auto-format Date field (adds ' / ' automatically after 2 digits)
+        document.getElementById('form-date').addEventListener('input', function(e) {
+            // Remove everything except standard digits and Persian/Arabic digits
+            let val = e.target.value.replace(/[^\d۰-۹٠-٩]/g, ''); 
+            
+            // Auto insert the slash
+            if (val.length > 2) {
+                val = val.substring(0, 2) + ' / ' + val.substring(2, 4);
+            }
+            e.target.value = val;
+        });
+
         function generatePreview() {
-            // Map of form IDs to preview IDs
+            // Map of standard text fields from form to preview
             const fields = [
                 { form: 'form-name', prev: 'prev-name' },
                 { form: 'form-age', prev: 'prev-age' },
                 { form: 'form-sex', prev: 'prev-sex' },
-                { form: 'form-date', prev: 'prev-date' },
                 { form: 'form-bp', prev: 'prev-bp' },
                 { form: 'form-pr', prev: 'prev-pr' },
                 { form: 'form-hr', prev: 'prev-hr' },
@@ -434,6 +451,14 @@
                     prevElement.innerText = formElement.value;
                 }
             });
+
+            // Special handling for splitting the Date
+            const dateVal = document.getElementById('form-date').value;
+            const dateParts = dateVal.split('/');
+            
+            // Put the month in the first gap, and day in the second gap
+            document.getElementById('prev-month').innerText = dateParts[0] ? dateParts[0].trim() : '';
+            document.getElementById('prev-day').innerText = dateParts[1] ? dateParts[1].trim() : '';
 
             // Switch views
             document.getElementById('form-view').style.display = 'none';
