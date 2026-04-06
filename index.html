@@ -16,7 +16,8 @@
             --text-color: #333;
             --border-color: #ddd;
             
-            /* Default Font Sizes for Preview (in cqw to scale with container) */
+            /* Dynamic Print Variables */
+            --pen-color: #1a1a1a; /* Default Black Ink */
             --size-info: 2cqw;
             --size-vitals: 1.8cqw;
             --size-notes: 2cqw;
@@ -198,6 +199,39 @@
             text-align: center;
         }
 
+        /* Pen Color Controls */
+        .color-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .color-controls label {
+            font-weight: 600;
+            color: #444;
+            font-size: 0.9rem;
+            margin-right: 5px;
+        }
+
+        .color-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 0;
+        }
+
+        .color-btn.active {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 2px white inset, 0 0 0 2px var(--primary-color);
+        }
+
         .font-controls-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -226,7 +260,7 @@
             width: 100%;
             max-width: 800px; 
             aspect-ratio: 719 / 1024;
-            /* USING THE NEW CLEAN BACKGROUND IMAGE */
+            /* USING THE CLEAN BACKGROUND IMAGE */
             background-image: url('18545.png'); 
             background-size: cover;
             background-position: center;
@@ -235,23 +269,23 @@
             background-color: white; 
             container-type: inline-size; 
             border-radius: 4px;
-            overflow: hidden;
+            /* OVERFLOW REMOVED SO TEXT DOESN'T GET CHOPPED WHEN SCALED UP */
         }
 
         .overlay-text {
             position: absolute;
             font-family: inherit;
-            color: #1a1a1a;
-            padding: 2px 6px;
+            color: var(--pen-color); /* Uses dynamic pen color */
+            padding: 0 6px;
             box-sizing: border-box;
             z-index: 10;
-            overflow: hidden;
             white-space: nowrap; 
+            overflow: visible; /* Prevents invisible boxes from cutting text */
+            line-height: 1.2;
         }
 
         .overlay-textarea {
             white-space: pre-wrap; 
-            overflow-y: hidden;
         }
 
         /* Applying the dynamic font sizes */
@@ -271,8 +305,8 @@
         #prev-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
         #prev-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
         
-        /* Splitting into 3 exact spaces for YYYY / MM / DD */
-        #prev-year  { top: 29.75%; left: 4%; width: 4.5%; height: 2.8%; text-align: center; }
+        /* Fixed Year Spacing: Increased width to 6% and shifted left slightly */
+        #prev-year  { top: 29.75%; left: 2.5%; width: 6%; height: 2.8%; text-align: center; }
         #prev-month { top: 29.75%; left: 9.5%; width: 3.5%; height: 2.8%; text-align: center; }
         #prev-day   { top: 29.75%; left: 14%; width: 3.5%; height: 2.8%; text-align: center; }
 
@@ -325,9 +359,13 @@
 </head>
 <body>
 
+    <!-- ==========================================
+         VIEW 1: DATA ENTRY FORM
+         ========================================== -->
     <div id="form-view">
         <h2 class="header-title">Create Prescription</h2>
 
+        <!-- Patient Info -->
         <div class="form-section">
             <h3>Patient Information</h3>
             <div class="grid-2">
@@ -337,6 +375,7 @@
                 </div>
                 <div class="form-group">
                     <label>تاریخ (Date) - YYYY/MM/DD</label>
+                    <!-- Auto-fills on load -->
                     <input type="text" id="form-date" class="ltr-input" placeholder="YYYY/MM/DD" maxlength="10">
                 </div>
             </div>
@@ -352,6 +391,7 @@
             </div>
         </div>
 
+        <!-- Vitals -->
         <div class="form-section">
             <h3>Vitals</h3>
             <div class="grid-4">
@@ -367,6 +407,7 @@
             </div>
         </div>
 
+        <!-- Clinical Notes -->
         <div class="form-section">
             <h3>Clinical Notes</h3>
             <div class="form-group">
@@ -379,6 +420,7 @@
             </div>
         </div>
 
+        <!-- Prescription (Rx) -->
         <div class="form-section">
             <h3>Prescription (Rx)</h3>
             <div class="form-group">
@@ -386,6 +428,7 @@
             </div>
         </div>
 
+        <!-- Sticky Action Bar -->
         <div class="action-bar">
             <button class="btn" onclick="generatePreview()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -395,6 +438,9 @@
     </div>
 
 
+    <!-- ==========================================
+         VIEW 2: PREVIEW & PRINT LAYOUT
+         ========================================== -->
     <div id="preview-view">
         <div class="preview-controls">
             <button class="btn btn-secondary" onclick="backToEdit()" style="max-width: 200px;">
@@ -407,8 +453,19 @@
             </button>
         </div>
 
+        <!-- Font Adjustment Controls -->
         <div class="font-controls">
-            <h4>Adjust Text Sizes Before Printing</h4>
+            <h4>Adjust Text Options Before Printing</h4>
+            
+            <!-- Pen Color Options -->
+            <div class="color-controls">
+                <label>Pen Color:</label>
+                <button class="color-btn active" style="background: #1a1a1a;" onclick="setPenColor('#1a1a1a', this)" title="Black"></button>
+                <button class="color-btn" style="background: #0033cc;" onclick="setPenColor('#0033cc', this)" title="Blue"></button>
+                <button class="color-btn" style="background: #cc0000;" onclick="setPenColor('#cc0000', this)" title="Red"></button>
+            </div>
+
+            <!-- Size Sliders -->
             <div class="font-controls-grid">
                 <div class="slider-group">
                     <label>Top Info</label>
@@ -430,14 +487,17 @@
         </div>
 
         <div class="prescription-container" id="prescriptionContainer">
+            <!-- Top Band -->
             <div id="prev-name" class="overlay-text txt-info" dir="rtl"></div>
             <div id="prev-age" class="overlay-text txt-info" dir="rtl"></div>
             <div id="prev-sex" class="overlay-text txt-info" dir="rtl"></div>
             
+            <!-- Splitting the Date Output (YYYY / MM / DD) -->
             <div id="prev-year" class="overlay-text txt-info"></div>
             <div id="prev-month" class="overlay-text txt-info"></div>
             <div id="prev-day" class="overlay-text txt-info"></div>
 
+            <!-- Left Column (Vitals) -->
             <div id="prev-bp" class="overlay-text txt-vitals"></div>
             <div id="prev-pr" class="overlay-text txt-vitals"></div>
             <div id="prev-hr" class="overlay-text txt-vitals"></div>
@@ -446,19 +506,23 @@
             <div id="prev-spo2" class="overlay-text txt-vitals"></div>
             <div id="prev-weight" class="overlay-text txt-vitals"></div>
 
+            <!-- Text Areas -->
             <div id="prev-record" class="overlay-text overlay-textarea txt-notes"></div>
             <div id="prev-impression" class="overlay-text overlay-textarea txt-notes"></div>
 
+            <!-- Rx Area -->
             <div id="prev-rx" class="overlay-text overlay-textarea txt-rx"></div>
         </div>
     </div>
 
+    <!-- ==========================================
+         JAVASCRIPT LOGIC
+         ========================================== -->
     <script>
         // --- 1. Auto-fill Date on Load (Solar Hijri / Jalali Calendar) ---
         window.addEventListener('DOMContentLoaded', () => {
             try {
                 const date = new Date();
-                // Forces English numerals ('en-US') but calculates the Persian calendar year/month/day
                 const formatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { 
                     year: 'numeric', 
                     month: '2-digit', 
@@ -494,9 +558,16 @@
             e.target.value = formatted;
         });
 
-        // --- 3. Live Font Size Adjustments ---
+        // --- 3. Live Font Options (Size & Color) ---
         const rootVars = document.documentElement.style;
         
+        function setPenColor(color, btnElement) {
+            rootVars.setProperty('--pen-color', color);
+            // Update active button state visually
+            document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+
         document.getElementById('size-info').addEventListener('input', e => {
             rootVars.setProperty('--size-info', e.target.value + 'cqw');
         });
@@ -512,7 +583,6 @@
 
         // --- 4. View Switching and Data Transfer ---
         function generatePreview() {
-            // Map of standard text fields from form to preview
             const fields = [
                 { form: 'form-name', prev: 'prev-name' },
                 { form: 'form-age', prev: 'prev-age' },
@@ -549,7 +619,6 @@
             document.getElementById('form-view').style.display = 'none';
             document.getElementById('preview-view').style.display = 'flex';
             
-            // Scroll to top
             window.scrollTo(0, 0);
         }
 
