@@ -260,7 +260,6 @@
             width: 100%;
             max-width: 800px; 
             aspect-ratio: 719 / 1024;
-            /* USING THE CLEAN BACKGROUND IMAGE */
             background-image: url('18545.png'); 
             background-size: cover;
             background-position: center;
@@ -269,7 +268,6 @@
             background-color: white; 
             container-type: inline-size; 
             border-radius: 4px;
-            /* OVERFLOW REMOVED SO TEXT DOESN'T GET CHOPPED WHEN SCALED UP */
         }
 
         .overlay-text {
@@ -280,7 +278,7 @@
             box-sizing: border-box;
             z-index: 10;
             white-space: nowrap; 
-            overflow: visible; /* Prevents invisible boxes from cutting text */
+            overflow: visible; /* Prevents invisible boxes from cutting text when enlarged */
             line-height: 1.2;
         }
 
@@ -305,10 +303,10 @@
         #prev-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
         #prev-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
         
-        /* Fixed Year Spacing: Increased width to 6% and shifted left slightly */
-        #prev-year  { top: 29.75%; left: 2.5%; width: 6%; height: 2.8%; text-align: center; }
-        #prev-month { top: 29.75%; left: 9.5%; width: 3.5%; height: 2.8%; text-align: center; }
-        #prev-day   { top: 29.75%; left: 14%; width: 3.5%; height: 2.8%; text-align: center; }
+        /* CORRECTED SPACING: Moved away from corner, aligned perfectly inside slashes */
+        #prev-year  { top: 29.75%; left: 4%; width: 6.5%; height: 2.8%; text-align: center; }
+        #prev-month { top: 29.75%; left: 11.5%; width: 4%; height: 2.8%; text-align: center; }
+        #prev-day   { top: 29.75%; left: 17.5%; width: 4%; height: 2.8%; text-align: center; }
 
         #prev-bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
         #prev-pr     { top: 36.8%; left: 13%; width: 16%; height: 1.8%; }
@@ -375,7 +373,6 @@
                 </div>
                 <div class="form-group">
                     <label>تاریخ (Date) - YYYY/MM/DD</label>
-                    <!-- Auto-fills on load -->
                     <input type="text" id="form-date" class="ltr-input" placeholder="YYYY/MM/DD" maxlength="10">
                 </div>
             </div>
