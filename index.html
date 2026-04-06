@@ -226,7 +226,8 @@
             width: 100%;
             max-width: 800px; 
             aspect-ratio: 719 / 1024;
-            background-image: url('18383.jpg'); 
+            /* USING THE NEW CLEAN BACKGROUND IMAGE */
+            background-image: url('18545.png'); 
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -264,15 +265,16 @@
         }
 
         /* =========================================
-           POSITIONING (EXACT A4 ALIGNMENT)
+           POSITIONING (EXACT ALIGNMENT)
            ========================================= */
         #prev-name { top: 29.75%; left: 66.5%; width: 18%; height: 2.8%; text-align: right; }
         #prev-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
         #prev-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
         
-        /* The Date fields specifically slotted between the two slashes */
-        #prev-month { top: 29.75%; left: 8.5%; width: 3.5%; height: 2.8%; text-align: center; }
-        #prev-day   { top: 29.75%; left: 12.5%; width: 4.5%; height: 2.8%; text-align: center; }
+        /* Splitting into 3 exact spaces for YYYY / MM / DD */
+        #prev-year  { top: 29.75%; left: 4%; width: 4.5%; height: 2.8%; text-align: center; }
+        #prev-month { top: 29.75%; left: 9.5%; width: 3.5%; height: 2.8%; text-align: center; }
+        #prev-day   { top: 29.75%; left: 14%; width: 3.5%; height: 2.8%; text-align: center; }
 
         #prev-bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
         #prev-pr     { top: 36.8%; left: 13%; width: 16%; height: 1.8%; }
@@ -287,27 +289,27 @@
         #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
 
         /* =========================================
-           PRINT STYLES
+           PRINT STYLES (STRICT A4 ENFORCEMENT)
            ========================================= */
         @media print {
             @page {
-                size: A4 portrait;
+                size: 210mm 297mm; /* Exact physical A4 dimensions */
                 margin: 0;
             }
             html, body {
-                width: 100%;
-                height: 100%;
+                width: 210mm;
+                height: 297mm;
                 margin: 0;
                 padding: 0;
                 background-color: white;
                 overflow: hidden; 
             }
             #form-view, .preview-controls, .font-controls { display: none !important; }
-            #preview-view { display: block !important; padding: 0; }
+            #preview-view { display: block !important; padding: 0; margin: 0; }
             .prescription-container {
-                max-width: none;
-                width: 100vw;
-                height: 100vh; 
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: none !important;
                 aspect-ratio: auto;
                 background-size: 100% 100%; 
                 box-shadow: none;
@@ -323,13 +325,9 @@
 </head>
 <body>
 
-    <!-- ==========================================
-         VIEW 1: DATA ENTRY FORM
-         ========================================== -->
     <div id="form-view">
         <h2 class="header-title">Create Prescription</h2>
 
-        <!-- Patient Info -->
         <div class="form-section">
             <h3>Patient Information</h3>
             <div class="grid-2">
@@ -338,9 +336,8 @@
                     <input type="text" id="form-name" dir="rtl" placeholder="اسم بیمار">
                 </div>
                 <div class="form-group">
-                    <label>تاریخ (Date) - MM/DD</label>
-                    <!-- Strictly LTR for natural English-like typing -->
-                    <input type="text" id="form-date" class="ltr-input" placeholder="MM/DD" maxlength="5">
+                    <label>تاریخ (Date) - YYYY/MM/DD</label>
+                    <input type="text" id="form-date" class="ltr-input" placeholder="YYYY/MM/DD" maxlength="10">
                 </div>
             </div>
             <div class="grid-2">
@@ -355,7 +352,6 @@
             </div>
         </div>
 
-        <!-- Vitals -->
         <div class="form-section">
             <h3>Vitals</h3>
             <div class="grid-4">
@@ -371,7 +367,6 @@
             </div>
         </div>
 
-        <!-- Clinical Notes -->
         <div class="form-section">
             <h3>Clinical Notes</h3>
             <div class="form-group">
@@ -384,7 +379,6 @@
             </div>
         </div>
 
-        <!-- Prescription (Rx) -->
         <div class="form-section">
             <h3>Prescription (Rx)</h3>
             <div class="form-group">
@@ -392,7 +386,6 @@
             </div>
         </div>
 
-        <!-- Sticky Action Bar -->
         <div class="action-bar">
             <button class="btn" onclick="generatePreview()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -402,9 +395,6 @@
     </div>
 
 
-    <!-- ==========================================
-         VIEW 2: PREVIEW & PRINT LAYOUT
-         ========================================== -->
     <div id="preview-view">
         <div class="preview-controls">
             <button class="btn btn-secondary" onclick="backToEdit()" style="max-width: 200px;">
@@ -417,7 +407,6 @@
             </button>
         </div>
 
-        <!-- Font Adjustment Controls -->
         <div class="font-controls">
             <h4>Adjust Text Sizes Before Printing</h4>
             <div class="font-controls-grid">
@@ -441,16 +430,14 @@
         </div>
 
         <div class="prescription-container" id="prescriptionContainer">
-            <!-- Top Band -->
             <div id="prev-name" class="overlay-text txt-info" dir="rtl"></div>
             <div id="prev-age" class="overlay-text txt-info" dir="rtl"></div>
             <div id="prev-sex" class="overlay-text txt-info" dir="rtl"></div>
             
-            <!-- Splitting the Date Output -->
+            <div id="prev-year" class="overlay-text txt-info"></div>
             <div id="prev-month" class="overlay-text txt-info"></div>
             <div id="prev-day" class="overlay-text txt-info"></div>
 
-            <!-- Left Column (Vitals) -->
             <div id="prev-bp" class="overlay-text txt-vitals"></div>
             <div id="prev-pr" class="overlay-text txt-vitals"></div>
             <div id="prev-hr" class="overlay-text txt-vitals"></div>
@@ -459,29 +446,55 @@
             <div id="prev-spo2" class="overlay-text txt-vitals"></div>
             <div id="prev-weight" class="overlay-text txt-vitals"></div>
 
-            <!-- Text Areas -->
             <div id="prev-record" class="overlay-text overlay-textarea txt-notes"></div>
             <div id="prev-impression" class="overlay-text overlay-textarea txt-notes"></div>
 
-            <!-- Rx Area -->
             <div id="prev-rx" class="overlay-text overlay-textarea txt-rx"></div>
         </div>
     </div>
 
-    <!-- ==========================================
-         JAVASCRIPT LOGIC
-         ========================================== -->
     <script>
-        // --- 1. Date Field Auto-format ---
-        document.getElementById('form-date').addEventListener('input', function(e) {
-            let val = e.target.value.replace(/[^\d۰-۹٠-٩]/g, ''); 
-            if (val.length > 2) {
-                val = val.substring(0, 2) + '/' + val.substring(2, 4);
+        // --- 1. Auto-fill Date on Load (Solar Hijri / Jalali Calendar) ---
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const date = new Date();
+                // Forces English numerals ('en-US') but calculates the Persian calendar year/month/day
+                const formatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit' 
+                });
+                
+                const parts = formatter.formatToParts(date);
+                const year = parts.find(p => p.type === 'year').value;
+                const month = parts.find(p => p.type === 'month').value;
+                const day = parts.find(p => p.type === 'day').value;
+                
+                document.getElementById('form-date').value = `${year}/${month}/${day}`;
+            } catch (e) {
+                console.error("Calendar format not supported by browser, leaving blank.");
             }
-            e.target.value = val;
         });
 
-        // --- 2. Live Font Size Adjustments ---
+        // --- 2. Date Field Formatting (YYYY/MM/DD) ---
+        document.getElementById('form-date').addEventListener('input', function(e) {
+            let val = e.target.value.replace(/[^\d۰-۹٠-٩]/g, ''); 
+            let formatted = '';
+            
+            if (val.length > 0) {
+                formatted += val.substring(0, 4);
+            }
+            if (val.length > 4) {
+                formatted += '/' + val.substring(4, 6);
+            }
+            if (val.length > 6) {
+                formatted += '/' + val.substring(6, 8);
+            }
+            
+            e.target.value = formatted;
+        });
+
+        // --- 3. Live Font Size Adjustments ---
         const rootVars = document.documentElement.style;
         
         document.getElementById('size-info').addEventListener('input', e => {
@@ -497,7 +510,7 @@
             rootVars.setProperty('--size-rx', e.target.value + 'cqw');
         });
 
-        // --- 3. View Switching and Data Transfer ---
+        // --- 4. View Switching and Data Transfer ---
         function generatePreview() {
             // Map of standard text fields from form to preview
             const fields = [
@@ -524,11 +537,13 @@
                 }
             });
 
-            // Handle Date
+            // Handle the 3-part Date (Year / Month / Day)
             const dateVal = document.getElementById('form-date').value;
             const dateParts = dateVal.split('/');
-            document.getElementById('prev-month').innerText = dateParts[0] ? dateParts[0].trim() : '';
-            document.getElementById('prev-day').innerText = dateParts[1] ? dateParts[1].trim() : '';
+            
+            document.getElementById('prev-year').innerText = dateParts[0] ? dateParts[0].trim() : '';
+            document.getElementById('prev-month').innerText = dateParts[1] ? dateParts[1].trim() : '';
+            document.getElementById('prev-day').innerText = dateParts[2] ? dateParts[2].trim() : '';
 
             // Switch views
             document.getElementById('form-view').style.display = 'none';
@@ -545,6 +560,5 @@
     </script>
 </body>
 </html>
-
 
 
