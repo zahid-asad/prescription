@@ -260,6 +260,7 @@
             width: 100%;
             max-width: 800px; 
             aspect-ratio: 719 / 1024;
+            /* USING THE CLEAN BACKGROUND IMAGE */
             background-image: url('18545.png'); 
             background-size: cover;
             background-position: center;
@@ -278,7 +279,7 @@
             box-sizing: border-box;
             z-index: 10;
             white-space: nowrap; 
-            overflow: visible; /* Prevents invisible boxes from cutting text when enlarged */
+            overflow: visible; 
             line-height: 1.2;
         }
 
@@ -299,15 +300,17 @@
         /* =========================================
            POSITIONING (EXACT ALIGNMENT)
            ========================================= */
-        #prev-name { top: 29.75%; left: 66.5%; width: 18%; height: 2.8%; text-align: right; }
-        #prev-age  { top: 29.75%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
-        #prev-sex  { top: 29.75%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
+        /* Top band shifted down slightly to center vertically (30.6%) */
+        #prev-name { top: 30.6%; left: 66.5%; width: 18%; height: 2.8%; text-align: right; }
+        #prev-age  { top: 30.6%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
+        #prev-sex  { top: 30.6%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
         
-        /* CORRECTED SPACING: Moved away from corner, aligned perfectly inside slashes */
-        #prev-year  { top: 29.75%; left: 4%; width: 6.5%; height: 2.8%; text-align: center; }
-        #prev-month { top: 29.75%; left: 11.5%; width: 4%; height: 2.8%; text-align: center; }
-        #prev-day   { top: 29.75%; left: 17.5%; width: 4%; height: 2.8%; text-align: center; }
+        /* Date parts shifted right to avoid slashes */
+        #prev-year  { top: 30.6%; left: 3.5%; width: 6%; height: 2.8%; text-align: center; }
+        #prev-month { top: 30.6%; left: 10.5%; width: 3.5%; height: 2.8%; text-align: center; }
+        #prev-day   { top: 30.6%; left: 15.5%; width: 4%; height: 2.8%; text-align: center; }
 
+        /* Left Column (Vitals) */
         #prev-bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
         #prev-pr     { top: 36.8%; left: 13%; width: 16%; height: 1.8%; }
         #prev-hr     { top: 39.9%; left: 13%; width: 16%; height: 1.8%; }
@@ -316,6 +319,7 @@
         #prev-spo2   { top: 49.4%; left: 14%; width: 15%; height: 1.8%; }
         #prev-weight { top: 52.6%; left: 18%; width: 11%; height: 1.8%; }
 
+        /* Text Areas */
         #prev-record     { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-impression { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
