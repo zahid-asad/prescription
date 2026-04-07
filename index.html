@@ -22,7 +22,7 @@
             --border-color: #ddd;
             
             /* Dynamic Print Variables */
-            --pen-color: #1a1a1a; /* Default Black Ink */
+            --pen-color: #1a1a1a; 
             --size-info: 2cqw;
             --size-vitals: 1.8cqw;
             --size-notes: 2cqw;
@@ -91,7 +91,8 @@
         }
 
         .form-group input, 
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border-color);
@@ -102,13 +103,15 @@
             box-sizing: border-box;
         }
 
+        /* LTR class strictly for numeric typing */
         .ltr-input {
             direction: ltr !important;
             text-align: left !important;
         }
 
         .form-group input:focus, 
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
@@ -207,11 +210,11 @@
             text-align: center;
         }
 
-        /* Pen Color Controls */
         .color-controls {
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-wrap: wrap;
             gap: 12px;
             margin-bottom: 20px;
             padding-bottom: 15px;
@@ -263,13 +266,13 @@
             cursor: pointer;
         }
 
+        /* Container */
         .prescription-container {
             position: relative;
             width: 100%;
             max-width: 800px; 
             aspect-ratio: 719 / 1024;
-            /* NEW IMAGE WITH NO SLASHES */
-            background-image: url('18545.png'); 
+            background-image: url('18545.png'); /* Clean background */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -279,10 +282,35 @@
             border-radius: 4px;
         }
 
+        /* DYNAMIC TOP BAR */
+        #top-bar-preview {
+            position: absolute;
+            top: 29.8%;
+            left: 4.5%;
+            width: 91%;
+            height: 3.5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; 
+            z-index: 10;
+            color: var(--pen-color);
+        }
+
+        .top-bar-item {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .top-bar-label {
+            font-weight: 600; 
+        }
+
+        /* Overlays */
         .overlay-text {
             position: absolute;
             font-family: inherit;
-            color: var(--pen-color); /* Uses dynamic pen color */
+            color: var(--pen-color);
             padding: 0 6px;
             box-sizing: border-box;
             z-index: 10;
@@ -295,7 +323,7 @@
             white-space: pre-wrap; 
         }
 
-        /* Applying the dynamic font sizes */
+        /* Dynamic Font Size Classes */
         .txt-info { font-size: var(--size-info); }
         .txt-vitals { font-size: var(--size-vitals); }
         .txt-notes { font-size: var(--size-notes); }
@@ -305,32 +333,35 @@
             font-weight: 500;
         }
 
+        /* Bold Switch Logic */
+        .force-bold .overlay-text,
+        .force-bold .overlay-textarea,
+        .force-bold .top-bar-value,
+        .force-bold .top-bar-label,
+        .force-bold .txt-info,
+        .force-bold .txt-vitals,
+        .force-bold .txt-notes,
+        .force-bold .txt-rx {
+            font-weight: bold !important;
+        }
+
         /* =========================================
-           POSITIONING (EXACT ALIGNMENT)
+           POSITIONING (Vitals & Rx)
            ========================================= */
-        #prev-name { top: 30.6%; left: 66.5%; width: 18%; height: 2.8%; text-align: right; }
-        #prev-age  { top: 30.6%; left: 47.5%; width: 10%; height: 2.8%; text-align: right; }
-        #prev-sex  { top: 30.6%; left: 30.5%; width: 8%;  height: 2.8%; text-align: right; }
-        
-        /* SINGLE CONSOLIDATED DATE FIELD */
-        #prev-date  { top: 30.6%; left: 4%; width: 18%; height: 2.8%; text-align: center; } 
+        #prev-bp     { top: 35.0%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-pr     { top: 38.0%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-hr     { top: 41.0%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-rr     { top: 44.2%; left: 13%; width: 16%; height: 1.8%; }
+        #prev-temp   { top: 47.3%; left: 15%; width: 14%; height: 1.8%; }
+        #prev-spo2   { top: 50.5%; left: 14%; width: 15%; height: 1.8%; }
+        #prev-weight { top: 53.7%; left: 18%; width: 11%; height: 1.8%; }
 
-        /* Left Column (Vitals) */
-        #prev-bp     { top: 33.7%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-pr     { top: 36.8%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-hr     { top: 39.9%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-rr     { top: 43.0%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-temp   { top: 46.2%; left: 15%; width: 14%; height: 1.8%; }
-        #prev-spo2   { top: 49.4%; left: 14%; width: 15%; height: 1.8%; }
-        #prev-weight { top: 52.6%; left: 18%; width: 11%; height: 1.8%; }
-
-        /* Text Areas */
         #prev-record     { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-impression { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
 
         /* =========================================
-           NATIVE PRINT STYLES (Kept as fallback)
+           NATIVE PRINT STYLES
            ========================================= */
         @media print {
             @page {
@@ -368,36 +399,47 @@
          VIEW 1: DATA ENTRY FORM
          ========================================== -->
     <div id="form-view">
-        <h2 class="header-title">Create Prescription</h2>
+        <h2 class="header-title" data-i18n="title">نسخه جوړول</h2>
+
+        <!-- Language Switcher -->
+        <div class="form-section">
+            <h3 data-i18n="lang_label">بڼه / ژبه (Format / Language)</h3>
+            <div class="form-group">
+                <select id="lang-switch" onchange="updateLanguage()">
+                    <option value="ps">Pashto (راست به چپ)</option>
+                    <option value="en">English (Left to Right)</option>
+                </select>
+            </div>
+        </div>
 
         <!-- Patient Info -->
         <div class="form-section">
-            <h3>Patient Information</h3>
+            <h3 data-i18n="sec_patient">د ناروغ معلومات</h3>
             <div class="grid-2">
                 <div class="form-group">
-                    <label>اسم (Name)</label>
-                    <input type="text" id="form-name" dir="rtl" placeholder="اسم بیمار">
+                    <label data-i18n="lbl_name">اسم</label>
+                    <input type="text" id="form-name" dir="rtl" data-i18n-ph="ph_name" placeholder="اسم مریض">
                 </div>
                 <div class="form-group">
-                    <label>تاریخ (Date) - YYYY/MM/DD</label>
+                    <label data-i18n="lbl_date">تاریخ - YYYY/MM/DD</label>
                     <input type="text" id="form-date" class="ltr-input" placeholder="YYYY/MM/DD" maxlength="10">
                 </div>
             </div>
             <div class="grid-2">
                 <div class="form-group">
-                    <label>سن (Age / DOB)</label>
-                    <input type="text" id="form-age" class="ltr-input" placeholder="Age or DOB">
+                    <label data-i18n="lbl_age">سن</label>
+                    <input type="text" id="form-age" class="ltr-input" data-i18n-ph="ph_age" placeholder="سن مریض">
                 </div>
                 <div class="form-group">
-                    <label>جنس (Sex)</label>
-                    <input type="text" id="form-sex" dir="rtl" placeholder="مرد/زن">
+                    <label data-i18n="lbl_sex">جنس</label>
+                    <input type="text" id="form-sex" dir="rtl" data-i18n-ph="ph_sex" placeholder="نارینه / ښځینه">
                 </div>
             </div>
         </div>
 
         <!-- Vitals -->
         <div class="form-section">
-            <h3>Vitals</h3>
+            <h3 data-i18n="sec_vitals">حیاتي نښې</h3>
             <div class="grid-4">
                 <div class="form-group"><label>BP</label><input type="text" id="form-bp" class="ltr-input"></div>
                 <div class="form-group"><label>PR</label><input type="text" id="form-pr" class="ltr-input"></div>
@@ -407,28 +449,28 @@
             <div class="grid-3">
                 <div class="form-group"><label>Temp</label><input type="text" id="form-temp" class="ltr-input"></div>
                 <div class="form-group"><label>SpO2</label><input type="text" id="form-spo2" class="ltr-input"></div>
-                <div class="form-group"><label>Weight</label><input type="text" id="form-weight" class="ltr-input"></div>
+                <div class="form-group"><label data-i18n="lbl_weight">وزن</label><input type="text" id="form-weight" class="ltr-input"></div>
             </div>
         </div>
 
         <!-- Clinical Notes -->
         <div class="form-section">
-            <h3>Clinical Notes</h3>
+            <h3 data-i18n="sec_notes">کلینیکي یادښتونه</h3>
             <div class="form-group">
-                <label>Clinical Record</label>
-                <textarea id="form-record" placeholder="Enter clinical record..." dir="auto"></textarea>
+                <label data-i18n="lbl_record">کلینیکي ریکارډ</label>
+                <textarea id="form-record" data-i18n-ph="ph_record" placeholder="کلینیکي ریکارډ ولیکئ..." dir="rtl"></textarea>
             </div>
             <div class="form-group">
-                <label>Impression</label>
-                <textarea id="form-impression" placeholder="Enter impression..." dir="auto"></textarea>
+                <label data-i18n="lbl_impression">تشخیص (Impression)</label>
+                <textarea id="form-impression" data-i18n-ph="ph_impression" placeholder="تشخیص ولیکئ..." dir="rtl"></textarea>
             </div>
         </div>
 
         <!-- Prescription (Rx) -->
         <div class="form-section">
-            <h3>Prescription (Rx)</h3>
+            <h3 data-i18n="sec_rx">نسخه (Rx)</h3>
             <div class="form-group">
-                <textarea id="form-rx" placeholder="1. Medicine A - 1x/day&#10;2. Medicine B - 2x/day" dir="ltr"></textarea>
+                <textarea id="form-rx" data-i18n-ph="ph_rx" placeholder="1. Medicine A - 1x/day&#10;2. Medicine B - 2x/day" dir="ltr"></textarea>
             </div>
         </div>
 
@@ -436,7 +478,7 @@
         <div class="action-bar">
             <button class="btn" onclick="generatePreview()">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                Preview & Print
+                <span data-i18n="btn_preview">مخکتنه او چاپ</span>
             </button>
         </div>
     </div>
@@ -449,60 +491,59 @@
         <div class="preview-controls">
             <button class="btn btn-secondary" onclick="backToEdit()" style="flex: 1; max-width: 200px;">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                Edit
+                <span data-i18n="btn_edit">سمون (Edit)</span>
             </button>
             <button class="btn" onclick="window.print()" style="flex: 1; max-width: 200px;" title="Standard PC Print">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                Normal Print
+                <span data-i18n="btn_print">عادي چاپ</span>
             </button>
-            <!-- DIRECT PDF DOWNLOAD BUTTON -->
             <button class="btn btn-success" id="btn-download" onclick="downloadPDF()" style="flex: 2; max-width: 300px;">
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download Perfect PDF
+                <span data-i18n="btn_pdf">PDF ډاونلوډ کړئ</span>
             </button>
         </div>
 
         <!-- Font Adjustment Controls -->
         <div class="font-controls">
-            <h4>Adjust Text Options Before Printing</h4>
+            <h4 data-i18n="font_title">د چاپ دمخه د متن اختیارونه تنظیم کړئ</h4>
             
-            <!-- Pen Color Options -->
             <div class="color-controls">
-                <label>Pen Color:</label>
-                <button class="color-btn active" style="background: #1a1a1a;" onclick="setPenColor('#1a1a1a', this)" title="Black"></button>
-                <button class="color-btn" style="background: #0033cc;" onclick="setPenColor('#0033cc', this)" title="Blue"></button>
-                <button class="color-btn" style="background: #cc0000;" onclick="setPenColor('#cc0000', this)" title="Red"></button>
+                <label data-i18n="color_label">د قلم رنګ:</label>
+                <button class="color-btn active" style="background: #1a1a1a;" onclick="setPenColor('#1a1a1a', this)"></button>
+                <button class="color-btn" style="background: #0033cc;" onclick="setPenColor('#0033cc', this)"></button>
+                <button class="color-btn" style="background: #cc0000;" onclick="setPenColor('#cc0000', this)"></button>
+                
+                <!-- BOLD TOGGLE -->
+                <div style="margin-left: 15px; border-left: 2px solid #eee; padding-left: 15px; display: flex; align-items: center; gap: 6px;">
+                    <input type="checkbox" id="bold-toggle" onchange="toggleBold(this)" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="bold-toggle" style="margin: 0; cursor: pointer;" data-i18n="bold_label">ټول متن روښانه (Bold) کړئ</label>
+                </div>
             </div>
 
             <!-- Size Sliders -->
             <div class="font-controls-grid">
                 <div class="slider-group">
-                    <label>Top Info</label>
+                    <label data-i18n="sl_info">لوړ معلومات</label>
                     <input type="range" id="size-info" min="1" max="4" step="0.1" value="2">
                 </div>
                 <div class="slider-group">
-                    <label>Vitals</label>
+                    <label data-i18n="sl_vitals">حیاتي نښې</label>
                     <input type="range" id="size-vitals" min="1" max="4" step="0.1" value="1.8">
                 </div>
                 <div class="slider-group">
-                    <label>Notes</label>
+                    <label data-i18n="sl_notes">یادښتونه</label>
                     <input type="range" id="size-notes" min="1" max="4" step="0.1" value="2">
                 </div>
                 <div class="slider-group">
-                    <label>Prescription (Rx)</label>
+                    <label data-i18n="sl_rx">نسخه (Rx)</label>
                     <input type="range" id="size-rx" min="1" max="5" step="0.1" value="2.2">
                 </div>
             </div>
         </div>
 
         <div class="prescription-container" id="prescriptionContainer">
-            <!-- Top Band -->
-            <div id="prev-name" class="overlay-text txt-info" dir="rtl"></div>
-            <div id="prev-age" class="overlay-text txt-info" dir="rtl"></div>
-            <div id="prev-sex" class="overlay-text txt-info" dir="rtl"></div>
-            
-            <!-- Consolidated Date Output -->
-            <div id="prev-date" class="overlay-text txt-info"></div>
+            <!-- DYNAMIC TOP BAND (Name, Age, Sex, Date) -->
+            <div id="top-bar-preview" class="txt-info"></div>
 
             <!-- Left Column (Vitals) -->
             <div id="prev-bp" class="overlay-text txt-vitals"></div>
@@ -526,16 +567,91 @@
          JAVASCRIPT LOGIC
          ========================================== -->
     <script>
-        // --- 1. Auto-fill Date on Load (Solar Hijri / Jalali Calendar) ---
-        window.addEventListener('DOMContentLoaded', () => {
+        // --- TRANSLATION DICTIONARY ---
+        const translations = {
+            en: {
+                title: "Create Prescription",
+                lang_label: "Format / Language",
+                sec_patient: "Patient Information",
+                lbl_name: "Name", ph_name: "Patient Name",
+                lbl_date: "Date - YYYY/MM/DD",
+                lbl_age: "Age / DOB", ph_age: "Age or DOB",
+                lbl_sex: "Sex", ph_sex: "Male / Female",
+                sec_vitals: "Vitals",
+                lbl_weight: "Weight",
+                sec_notes: "Clinical Notes",
+                lbl_record: "Clinical Record", ph_record: "Enter clinical record...",
+                lbl_impression: "Impression", ph_impression: "Enter impression...",
+                sec_rx: "Prescription (Rx)",
+                ph_rx: "1. Medicine A - 1x/day\n2. Medicine B - 2x/day",
+                btn_preview: "Preview & Print",
+                btn_edit: "Edit",
+                btn_print: "Normal Print",
+                btn_pdf: "Download PDF",
+                font_title: "Adjust Text Options Before Printing",
+                color_label: "Pen Color:",
+                bold_label: "Make All Text Bold",
+                sl_info: "Top Info", sl_vitals: "Vitals", sl_notes: "Notes", sl_rx: "Prescription (Rx)"
+            },
+            ps: {
+                title: "نسخه جوړول",
+                lang_label: "بڼه / ژبه (Format / Language)",
+                sec_patient: "د ناروغ معلومات",
+                lbl_name: "اسم", ph_name: "اسم مریض",
+                lbl_date: "تاریخ - YYYY/MM/DD",
+                lbl_age: "سن", ph_age: "سن مریض",
+                lbl_sex: "جنس", ph_sex: "نارینه / ښځینه",
+                sec_vitals: "حیاتي نښې",
+                lbl_weight: "وزن",
+                sec_notes: "کلینیکي یادښتونه",
+                lbl_record: "کلینیکي ریکارډ", ph_record: "کلینیکي ریکارډ ولیکئ...",
+                lbl_impression: "تشخیص (Impression)", ph_impression: "تشخیص ولیکئ...",
+                sec_rx: "نسخه (Rx)",
+                ph_rx: "1. Medicine A - 1x/day\n2. Medicine B - 2x/day",
+                btn_preview: "مخکتنه او چاپ",
+                btn_edit: "سمون (Edit)",
+                btn_print: "عادي چاپ",
+                btn_pdf: "PDF ډاونلوډ کړئ",
+                font_title: "د چاپ دمخه د متن اختیارونه تنظیم کړئ",
+                color_label: "د قلم رنګ:",
+                bold_label: "ټول متن روښانه (Bold) کړئ",
+                sl_info: "لوړ معلومات", sl_vitals: "حیاتي نښې", sl_notes: "یادښتونه", sl_rx: "نسخه (Rx)"
+            }
+        };
+
+        // --- 1. LANGUAGE & DATE INITIALIZATION ---
+        function updateLanguage() {
+            const lang = document.getElementById('lang-switch').value;
+            const dict = translations[lang];
+
+            // 1. Update all inner texts
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(dict[key]) el.innerText = dict[key];
+            });
+
+            // 2. Update all placeholders
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if(dict[key]) el.setAttribute('placeholder', dict[key]);
+            });
+
+            // 3. Update Text Direction (RTL for Pashto, LTR for English)
+            const dir = lang === 'ps' ? 'rtl' : 'ltr';
+            document.getElementById('form-name').dir = dir;
+            document.getElementById('form-sex').dir = dir;
+            document.getElementById('form-record').dir = dir;
+            document.getElementById('form-impression').dir = dir;
+
+            // 4. Update the Date to the correct calendar system
             try {
                 const date = new Date();
-                const formatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { 
-                    year: 'numeric', 
-                    month: '2-digit', 
-                    day: '2-digit' 
-                });
-                
+                let formatter;
+                if(lang === 'ps') {
+                    formatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                } else {
+                    formatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                }
                 const parts = formatter.formatToParts(date);
                 const year = parts.find(p => p.type === 'year').value;
                 const month = parts.find(p => p.type === 'month').value;
@@ -545,7 +661,10 @@
             } catch (e) {
                 console.error("Calendar format not supported by browser, leaving blank.");
             }
-        });
+        }
+
+        // Run translation on load
+        window.addEventListener('DOMContentLoaded', updateLanguage);
 
         // --- 2. Date Field Formatting (YYYY/MM/DD) ---
         document.getElementById('form-date').addEventListener('input', function(e) {
@@ -559,13 +678,22 @@
             e.target.value = formatted;
         });
 
-        // --- 3. Live Font Options (Size & Color) ---
+        // --- 3. Live Font Options (Size, Color, Bold) ---
         const rootVars = document.documentElement.style;
         
         function setPenColor(color, btnElement) {
             rootVars.setProperty('--pen-color', color);
             document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
+        }
+
+        function toggleBold(checkbox) {
+            const container = document.getElementById('prescriptionContainer');
+            if(checkbox.checked) {
+                container.classList.add('force-bold');
+            } else {
+                container.classList.remove('force-bold');
+            }
         }
 
         document.getElementById('size-info').addEventListener('input', e => {
@@ -583,11 +711,8 @@
 
         // --- 4. View Switching and Data Transfer ---
         function generatePreview() {
+            // Map standard Vitals and Rx fields
             const fields = [
-                { form: 'form-name', prev: 'prev-name' },
-                { form: 'form-age', prev: 'prev-age' },
-                { form: 'form-sex', prev: 'prev-sex' },
-                { form: 'form-date', prev: 'prev-date' }, // Consolidated Date Field
                 { form: 'form-bp', prev: 'prev-bp' },
                 { form: 'form-pr', prev: 'prev-pr' },
                 { form: 'form-hr', prev: 'prev-hr' },
@@ -608,6 +733,42 @@
                 }
             });
 
+            // --- DYNAMIC TOP BAR LOGIC (Language Based) ---
+            const lang = document.getElementById('lang-switch').value;
+            const topBar = document.getElementById('top-bar-preview');
+            
+            // Set flex direction: rtl puts Name on the right, ltr puts Name on the left.
+            topBar.dir = lang === 'ps' ? 'rtl' : 'ltr';
+
+            // Get translated labels for the top bar
+            const dict = translations[lang];
+
+            // Fetch the inputted values
+            const nameVal = document.getElementById('form-name').value;
+            const ageVal = document.getElementById('form-age').value;
+            const sexVal = document.getElementById('form-sex').value;
+            const dateVal = document.getElementById('form-date').value;
+
+            // Inject the HTML layout cleanly
+            topBar.innerHTML = `
+                <div class="top-bar-item">
+                    <span class="top-bar-label">${dict.lbl_name}:</span>
+                    <span class="top-bar-value">${nameVal}</span>
+                </div>
+                <div class="top-bar-item">
+                    <span class="top-bar-label">${dict.lbl_age}:</span>
+                    <span class="top-bar-value">${ageVal}</span>
+                </div>
+                <div class="top-bar-item">
+                    <span class="top-bar-label">${dict.lbl_sex}:</span>
+                    <span class="top-bar-value">${sexVal}</span>
+                </div>
+                <div class="top-bar-item">
+                    <span class="top-bar-label">${lang === 'ps' ? 'تاریخ' : 'Date'}:</span>
+                    <span class="top-bar-value">${dateVal}</span>
+                </div>
+            `;
+
             // Switch views
             document.getElementById('form-view').style.display = 'none';
             document.getElementById('preview-view').style.display = 'flex';
@@ -625,50 +786,39 @@
             const btn = document.getElementById('btn-download');
             const originalText = btn.innerHTML;
             
-            // Show loading state
             btn.innerHTML = '⏳ Generating PDF...';
             btn.disabled = true;
 
             try {
-                // Initialize jsPDF
                 const { jsPDF } = window.jspdf;
                 const container = document.getElementById('prescriptionContainer');
                 
-                // Force strict pixel dimensions so the canvas draws it perfectly regardless of screen size
                 const origWidth = container.style.width;
                 const origMaxWidth = container.style.maxWidth;
                 container.style.width = '800px';
                 container.style.maxWidth = '800px';
 
-                // Give DOM a split second to apply the width change
                 await new Promise(r => setTimeout(r, 100));
 
-                // Take a high-resolution snapshot
                 const canvas = await html2canvas(container, {
-                    scale: 3, // Very high quality
+                    scale: 3, 
                     useCORS: true,
                     backgroundColor: '#ffffff'
                 });
 
-                // Restore container styles
                 container.style.width = origWidth;
                 container.style.maxWidth = origMaxWidth;
 
-                // Convert canvas to image and add to a strictly A4 sized PDF Document
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const pdf = new jsPDF('p', 'mm', 'a4'); // 'p' = portrait, 'a4' = physical paper size
+                const pdf = new jsPDF('p', 'mm', 'a4'); 
                 
-                // Add the image filling exactly 210mm x 297mm (Standard A4)
                 pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-                
-                // Trigger file download
                 pdf.save('Prescription.pdf');
                 
             } catch (error) {
                 console.error("PDF Generation Error:", error);
                 alert('An error occurred while generating the PDF. Please try again.');
             } finally {
-                // Reset button
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
