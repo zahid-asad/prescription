@@ -149,6 +149,8 @@
             box-shadow: var(--shadow-sm);
             padding: 22px 24px;
             animation: fadeUp .35s ease both;
+            overflow: hidden;   /* prevents any child from breaking the frame */
+            min-width: 0;
         }
 
         @keyframes fadeUp {
@@ -235,42 +237,60 @@
             .grid-4 { grid-template-columns: 1fr 1fr; }
         }
 
-        /* Vitals compact inputs */
-        .vital-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .vital-group label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--text-3);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .vital-group input {
+        /* Vitals inline table */
+        .vitals-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
             width: 100%;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 9px 8px;
+            min-width: 0;
+        }
+
+        .vital-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fafcff;
             border: 1.5px solid var(--border);
             border-radius: var(--radius-sm);
-            background: #fafcff;
-            color: var(--text-1);
-            font-family: inherit;
-            transition: border-color .2s, box-shadow .2s;
-            box-sizing: border-box;
+            padding: 8px 10px;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+            min-width: 0;
+            overflow: hidden;
         }
 
-        .vital-group input:focus {
-            outline: none;
+        .vital-row:focus-within {
             border-color: var(--teal);
             background: #fff;
             box-shadow: 0 0 0 3px rgba(8,145,178,.12);
         }
+
+        .vital-tag {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--teal);
+            width: 36px;
+            flex-shrink: 0;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+
+        .vital-row input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-1);
+            outline: none;
+            min-width: 0;
+            width: 0;       /* forces flex shrink to work correctly */
+            padding: 0;
+            direction: ltr;
+        }
+
+        .vital-full { grid-column: 1 / -1; }
 
         /* ============================================================
            ACTION BAR
@@ -555,7 +575,11 @@
             line-height: 1.2;
         }
 
-        .overlay-textarea { white-space: pre-wrap; }
+        .overlay-textarea {
+            display: flex;
+            flex-direction: column;
+            white-space: normal;   /* inner spans handle their own wrapping */
+        }
 
         .txt-info   { font-size: var(--size-info); }
         .txt-vitals { font-size: var(--size-vitals); }
@@ -576,16 +600,39 @@
         .top-bar-item { display: flex; gap: 5px; align-items: center; }
         .top-bar-label { font-weight: 700; }
 
-        /* Positioning */
-        #prev-bp     { top: 35.0%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-pr     { top: 38.0%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-hr     { top: 41.0%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-rr     { top: 44.2%; left: 13%; width: 16%; height: 1.8%; }
-        #prev-temp   { top: 47.3%; left: 15%; width: 14%; height: 1.8%; }
-        #prev-spo2   { top: 50.5%; left: 14%; width: 15%; height: 1.8%; }
-        #prev-weight { top: 53.7%; left: 18%; width: 11%; height: 1.8%; }
-        #prev-record     { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
-        #prev-impression { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
+        /* Positioning — vitals start at the left edge of the vitals column */
+        #prev-bp     { top: 35.0%; left: 3%;  width: 28%; height: 1.8%; }
+        #prev-pr     { top: 38.0%; left: 3%;  width: 28%; height: 1.8%; }
+        #prev-hr     { top: 41.0%; left: 3%;  width: 28%; height: 1.8%; }
+        #prev-rr     { top: 44.2%; left: 3%;  width: 28%; height: 1.8%; }
+        #prev-temp   { top: 47.3%; left: 3%;  width: 28%; height: 1.8%; }
+        #prev-spo2   { top: 50.5%; left: 3%;  width: 28%; height: 1.8%; }
+        #prev-weight { top: 53.7%; left: 3%;  width: 28%; height: 1.8%; }
+        #prev-record     { top: 62.5%; left: 2%; width: 30%; height: 12%; }
+        #prev-impression { top: 75.5%; left: 2%; width: 30%; height: 12%; }
+        #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
+
+        /* Section heading inside overlay areas */
+        .overlay-section-head {
+            display: block;
+            font-size: calc(var(--size-notes) * 1.2);
+            font-weight: 700;
+            line-height: 1.4;
+            padding-bottom: 2px;
+            margin-bottom: 4px;
+            border-bottom: 1.2pt solid var(--pen-color);
+            white-space: nowrap;
+        }
+
+        .overlay-section-body {
+            font-size: var(--size-notes);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* Bold override — also covers section headings */
+        .force-bold .overlay-section-head,
+        .force-bold .overlay-section-body { font-weight: 700 !important; }
         #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
 
         /* Footer */
@@ -622,6 +669,17 @@
         .force-bold .top-bar-value,
         .force-bold .top-bar-label,
         .force-bold .footer-line { font-weight: 700 !important; }
+
+        /* Design border toggle */
+        .rx-bordered::after {
+            content: '';
+            position: absolute;
+            inset: 5px;
+            border: 1pt solid rgba(30,30,30,0.55);
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 50;
+        }
 
         /* ============================================================
            PRINT STYLES
@@ -754,16 +812,14 @@
             </div>
             <span data-i18n="sec_vitals">حیاتي نښې</span>
         </div>
-        <div class="grid-4" style="margin-bottom:12px">
-            <div class="vital-group"><label>BP</label><input type="text" id="form-bp" class="ltr-input"></div>
-            <div class="vital-group"><label>PR</label><input type="text" id="form-pr" class="ltr-input"></div>
-            <div class="vital-group"><label>HR</label><input type="text" id="form-hr" class="ltr-input"></div>
-            <div class="vital-group"><label>RR</label><input type="text" id="form-rr" class="ltr-input"></div>
-        </div>
-        <div class="grid-3">
-            <div class="vital-group"><label>Temp</label><input type="text" id="form-temp" class="ltr-input"></div>
-            <div class="vital-group"><label>SpO₂</label><input type="text" id="form-spo2" class="ltr-input"></div>
-            <div class="vital-group"><label data-i18n="lbl_weight">وزن</label><input type="text" id="form-weight" class="ltr-input"></div>
+        <div class="vitals-table">
+            <div class="vital-row"><span class="vital-tag">BP</span><input type="text" id="form-bp" placeholder="—"></div>
+            <div class="vital-row"><span class="vital-tag">PR</span><input type="text" id="form-pr" placeholder="—"></div>
+            <div class="vital-row"><span class="vital-tag">HR</span><input type="text" id="form-hr" placeholder="—"></div>
+            <div class="vital-row"><span class="vital-tag">RR</span><input type="text" id="form-rr" placeholder="—"></div>
+            <div class="vital-row"><span class="vital-tag">Temp</span><input type="text" id="form-temp" placeholder="—"></div>
+            <div class="vital-row"><span class="vital-tag">SpO₂</span><input type="text" id="form-spo2" placeholder="—"></div>
+            <div class="vital-row vital-full"><span class="vital-tag" data-i18n="lbl_weight">Weight</span><input type="text" id="form-weight" placeholder="—"></div>
         </div>
     </div>
 
@@ -881,6 +937,14 @@
                     </div>
                     <span class="toggle-label" data-i18n="address_label">پته ښودل</span>
                 </label>
+
+                <label class="toggle-wrap" for="border-toggle">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="border-toggle" onchange="toggleBorder(this)">
+                        <div class="toggle-track"></div>
+                    </div>
+                    <span class="toggle-label" data-i18n="border_label">Border</span>
+                </label>
             </div>
 
             <div class="divider"></div>
@@ -922,6 +986,9 @@
 
     <!-- The actual pad -->
     <div class="prescription-container" id="prescriptionContainer">
+        <!-- Soft white veil over the centre graphic to improve text readability -->
+        <div style="position:absolute;top:32%;left:32%;width:67%;height:57%;background:rgba(255,255,255,0.38);z-index:6;pointer-events:none;border-radius:2px;"></div>
+
         <div id="top-bar-preview" class="txt-info"></div>
 
         <div id="prev-bp"     class="overlay-text txt-vitals"></div>
@@ -969,7 +1036,8 @@
             font_title:"Text Options Before Printing",
             color_label:"Pen Color:", bold_label:"Bold All", address_label:"Show Address",
             sl_info:"Top Info", sl_vitals:"Vitals", sl_notes:"Notes", sl_rx:"Prescription",
-            sec_address:"Address & Contact", lbl_address:"Clinic Address", lbl_phone:"Phone Numbers"
+            sec_address:"Address & Contact", lbl_address:"Clinic Address", lbl_phone:"Phone Numbers",
+            border_label:"Border", lbl_weight:"Weight"
         },
         ps: {
             sec_patient:"د ناروغ معلومات", lbl_name:"اسم", ph_name:"اسم مریض",
@@ -985,7 +1053,8 @@
             font_title:"د چاپ دمخه د متن اختیارونه",
             color_label:"د قلم رنګ:", bold_label:"ټول Bold کړئ", address_label:"پته ښودل",
             sl_info:"لوړ معلومات", sl_vitals:"حیاتي نښې", sl_notes:"یادښتونه", sl_rx:"نسخه (Rx)",
-            sec_address:"آدرس او تلیفون", lbl_address:"د کلینیک آدرس", lbl_phone:"د تلیفون شمیرې"
+            sec_address:"آدرس او تلیفون", lbl_address:"د کلینیک آدرس", lbl_phone:"د تلیفون شمیرې",
+            border_label:"بارډر"
         }
     };
 
@@ -1061,6 +1130,10 @@
         document.getElementById('prev-address').style.display = cb.checked ? 'flex' : 'none';
     }
 
+    function toggleBorder(cb) {
+        document.getElementById('prescriptionContainer').classList.toggle('rx-bordered', cb.checked);
+    }
+
     function initSliders() {
         const sliders = [
             { id:'size-info',   cssVar:'--size-info',   valEl:'val-info' },
@@ -1080,22 +1153,42 @@
 
     /* ---- View switching ---- */
     function generatePreview() {
-        const map = [
-            ['form-bp','prev-bp'],['form-pr','prev-pr'],['form-hr','prev-hr'],
-            ['form-rr','prev-rr'],['form-temp','prev-temp'],['form-spo2','prev-spo2'],
-            ['form-weight','prev-weight'],['form-record','prev-record'],
-            ['form-impression','prev-impression'],['form-rx','prev-rx']
+        const dict = T[currentLang];
+
+        // ── Vitals: inject "Label = value" for each row
+        const vitals = [
+            { form:'form-bp',     prev:'prev-bp',     label:'BP'     },
+            { form:'form-pr',     prev:'prev-pr',     label:'PR'     },
+            { form:'form-hr',     prev:'prev-hr',     label:'HR'     },
+            { form:'form-rr',     prev:'prev-rr',     label:'RR'     },
+            { form:'form-temp',   prev:'prev-temp',   label:'Temp'   },
+            { form:'form-spo2',   prev:'prev-spo2',   label:'SpO₂'  },
+            { form:'form-weight', prev:'prev-weight', label:'Weight' },
         ];
-        map.forEach(([fid, pid]) => {
-            const f = document.getElementById(fid);
-            const p = document.getElementById(pid);
-            if (f && p) p.innerText = f.value;
+        vitals.forEach(({ form, prev, label }) => {
+            const val = document.getElementById(form).value;
+            document.getElementById(prev).innerText = val ? `${label} = ${val}` : '';
         });
 
-        const dict = T[currentLang];
+        // ── Clinical Record: heading + body
+        const recordVal = document.getElementById('form-record').value;
+        document.getElementById('prev-record').innerHTML =
+            `<span class="overlay-section-head">${dict.lbl_record}</span>` +
+            `<span class="overlay-section-body">${escHtml(recordVal)}</span>`;
+
+        // ── Impression: heading + body
+        const impVal = document.getElementById('form-impression').value;
+        document.getElementById('prev-impression').innerHTML =
+            `<span class="overlay-section-head">${dict.lbl_impression}</span>` +
+            `<span class="overlay-section-body">${escHtml(impVal)}</span>`;
+
+        // ── Rx (no heading change — background already has Rx)
+        document.getElementById('prev-rx').innerText =
+            document.getElementById('form-rx').value;
+
+        // ── Top bar (Name / Age / Sex / Date)
         const topBar = document.getElementById('top-bar-preview');
         topBar.dir = currentLang === 'ps' ? 'rtl' : 'ltr';
-
         const name = document.getElementById('form-name').value;
         const age  = document.getElementById('form-age').value;
         const sex  = document.getElementById('form-sex').value;
@@ -1104,19 +1197,19 @@
         topBar.innerHTML = `
             <div class="top-bar-item">
                 <span class="top-bar-label">${dict.lbl_name}:</span>
-                <span class="top-bar-value">${name}</span>
+                <span class="top-bar-value">${escHtml(name)}</span>
             </div>
             <div class="top-bar-item">
                 <span class="top-bar-label">${dict.lbl_age}:</span>
-                <span class="top-bar-value">${age}</span>
+                <span class="top-bar-value">${escHtml(age)}</span>
             </div>
             <div class="top-bar-item">
                 <span class="top-bar-label">${dict.lbl_sex}:</span>
-                <span class="top-bar-value">${sex}</span>
+                <span class="top-bar-value">${escHtml(sex)}</span>
             </div>
             <div class="top-bar-item">
                 <span class="top-bar-label">${currentLang==='ps'?'تاریخ':'Date'}:</span>
-                <span class="top-bar-value">${date}</span>
+                <span class="top-bar-value">${escHtml(date)}</span>
             </div>`;
 
         document.getElementById('form-view').style.display = 'none';
@@ -1124,15 +1217,18 @@
         window.scrollTo(0, 0);
 
         // Update address & phone from form inputs
-        const addrEl = document.getElementById('prev-address');
+        const addrEl  = document.getElementById('prev-address');
         const phoneEl = document.getElementById('prev-phone');
         const addrVal = document.getElementById('form-address').value.trim();
         const phoneVal = document.getElementById('form-phone').value.trim();
-
         addrEl.innerHTML = addrVal
-            ? `<span class="footer-line">${addrVal.replace(/\n/g, '<br>')}</span>`
+            ? `<span class="footer-line">${escHtml(addrVal).replace(/\n/g,'<br>')}</span>`
             : '';
         phoneEl.textContent = phoneVal ? 'Phone: ' + phoneVal : '';
+    }
+
+    function escHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
 
     function backToEdit() {
@@ -1184,7 +1280,9 @@
                 useCORS:         true,
                 backgroundColor: '#ffffff',
                 logging:         false,
-                allowTaint:      false
+                allowTaint:      false,
+                letterRendering: true,
+                imageTimeout:    0
             });
 
             container.style.width    = savedW;
