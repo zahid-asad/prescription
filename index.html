@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,6 +28,7 @@
             --size-vitals: 1.8cqw;
             --size-notes: 2cqw;
             --size-rx: 2.2cqw;
+            --size-footer: 1.6cqw;
         }
 
         html, body {
@@ -103,7 +105,6 @@
             box-sizing: border-box;
         }
 
-        /* LTR class strictly for numeric typing */
         .ltr-input {
             direction: ltr !important;
             text-align: left !important;
@@ -272,7 +273,8 @@
             width: 100%;
             max-width: 800px; 
             aspect-ratio: 719 / 1024;
-            background-image: url('18545.png'); /* Clean background */
+            /* NEW BACKGROUND WITHOUT ADDRESS */
+            background-image: url('18624.jpg'); 
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -341,7 +343,8 @@
         .force-bold .txt-info,
         .force-bold .txt-vitals,
         .force-bold .txt-notes,
-        .force-bold .txt-rx {
+        .force-bold .txt-rx,
+        .force-bold .footer-line {
             font-weight: bold !important;
         }
 
@@ -359,6 +362,36 @@
         #prev-record     { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-impression { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
+
+        /* =========================================
+           DYNAMIC ADDRESS FOOTER
+           ========================================= */
+        #prev-footer {
+            position: absolute;
+            bottom: 4%; /* Near the bottom of the page */
+            left: 5%;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 10;
+            color: var(--pen-color);
+            font-family: inherit;
+        }
+
+        .footer-line {
+            font-size: var(--size-footer);
+            line-height: 1.4;
+        }
+        
+        .footer-phone {
+            font-size: calc(var(--size-footer) * 0.9);
+            direction: ltr; /* Phones always LTR */
+            margin-top: 4px;
+            font-weight: bold;
+        }
 
         /* =========================================
            NATIVE PRINT STYLES
@@ -518,6 +551,12 @@
                     <input type="checkbox" id="bold-toggle" onchange="toggleBold(this)" style="width: 18px; height: 18px; cursor: pointer;">
                     <label for="bold-toggle" style="margin: 0; cursor: pointer;" data-i18n="bold_label">ټول متن روښانه (Bold) کړئ</label>
                 </div>
+
+                <!-- ADDRESS FOOTER TOGGLE -->
+                <div style="margin-left: 15px; border-left: 2px solid #eee; padding-left: 15px; display: flex; align-items: center; gap: 6px;">
+                    <input type="checkbox" id="address-toggle" onchange="toggleAddress(this)" checked style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="address-toggle" style="margin: 0; cursor: pointer;" data-i18n="address_label">پته ښودل (Show Address)</label>
+                </div>
             </div>
 
             <!-- Size Sliders -->
@@ -560,6 +599,13 @@
 
             <!-- Rx Area -->
             <div id="prev-rx" class="overlay-text overlay-textarea txt-rx"></div>
+
+            <!-- DYNAMIC ADDRESS FOOTER -->
+            <div id="prev-footer">
+                <span class="footer-line">آدرس: از ساعت ۸ صبح الی ۳ عصر، ایستگاه اخیر مکروریان چهارم رنا مادرن کلینیک شاهین مارکیت</span>
+                <span class="footer-line">از ساعت ۳ ظهر الی ۸ شب کلینیک عمر گلستان، شهرک عمر گلستان مکروریان سوم</span>
+                <span class="footer-phone">Phone: 0778019660, 0788294148, 0728385404</span>
+            </div>
         </div>
     </div>
 
@@ -591,6 +637,7 @@
                 font_title: "Adjust Text Options Before Printing",
                 color_label: "Pen Color:",
                 bold_label: "Make All Text Bold",
+                address_label: "Show Address Footer",
                 sl_info: "Top Info", sl_vitals: "Vitals", sl_notes: "Notes", sl_rx: "Prescription (Rx)"
             },
             ps: {
@@ -615,6 +662,7 @@
                 font_title: "د چاپ دمخه د متن اختیارونه تنظیم کړئ",
                 color_label: "د قلم رنګ:",
                 bold_label: "ټول متن روښانه (Bold) کړئ",
+                address_label: "پته ښودل (Show Address)",
                 sl_info: "لوړ معلومات", sl_vitals: "حیاتي نښې", sl_notes: "یادښتونه", sl_rx: "نسخه (Rx)"
             }
         };
@@ -624,26 +672,22 @@
             const lang = document.getElementById('lang-switch').value;
             const dict = translations[lang];
 
-            // 1. Update all inner texts
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if(dict[key]) el.innerText = dict[key];
             });
 
-            // 2. Update all placeholders
             document.querySelectorAll('[data-i18n-ph]').forEach(el => {
                 const key = el.getAttribute('data-i18n-ph');
                 if(dict[key]) el.setAttribute('placeholder', dict[key]);
             });
 
-            // 3. Update Text Direction (RTL for Pashto, LTR for English)
             const dir = lang === 'ps' ? 'rtl' : 'ltr';
             document.getElementById('form-name').dir = dir;
             document.getElementById('form-sex').dir = dir;
             document.getElementById('form-record').dir = dir;
             document.getElementById('form-impression').dir = dir;
 
-            // 4. Update the Date to the correct calendar system
             try {
                 const date = new Date();
                 let formatter;
@@ -663,22 +707,18 @@
             }
         }
 
-        // Run translation on load
         window.addEventListener('DOMContentLoaded', updateLanguage);
 
-        // --- 2. Date Field Formatting (YYYY/MM/DD) ---
         document.getElementById('form-date').addEventListener('input', function(e) {
             let val = e.target.value.replace(/[^\d۰-۹٠-٩]/g, ''); 
             let formatted = '';
-            
             if (val.length > 0) { formatted += val.substring(0, 4); }
             if (val.length > 4) { formatted += '/' + val.substring(4, 6); }
             if (val.length > 6) { formatted += '/' + val.substring(6, 8); }
-            
             e.target.value = formatted;
         });
 
-        // --- 3. Live Font Options (Size, Color, Bold) ---
+        // --- 3. Live Font & Display Options ---
         const rootVars = document.documentElement.style;
         
         function setPenColor(color, btnElement) {
@@ -689,29 +729,23 @@
 
         function toggleBold(checkbox) {
             const container = document.getElementById('prescriptionContainer');
-            if(checkbox.checked) {
-                container.classList.add('force-bold');
-            } else {
-                container.classList.remove('force-bold');
-            }
+            if(checkbox.checked) { container.classList.add('force-bold'); } 
+            else { container.classList.remove('force-bold'); }
         }
 
-        document.getElementById('size-info').addEventListener('input', e => {
-            rootVars.setProperty('--size-info', e.target.value + 'cqw');
-        });
-        document.getElementById('size-vitals').addEventListener('input', e => {
-            rootVars.setProperty('--size-vitals', e.target.value + 'cqw');
-        });
-        document.getElementById('size-notes').addEventListener('input', e => {
-            rootVars.setProperty('--size-notes', e.target.value + 'cqw');
-        });
-        document.getElementById('size-rx').addEventListener('input', e => {
-            rootVars.setProperty('--size-rx', e.target.value + 'cqw');
-        });
+        function toggleAddress(checkbox) {
+            const footer = document.getElementById('prev-footer');
+            if(checkbox.checked) { footer.style.display = 'flex'; } 
+            else { footer.style.display = 'none'; }
+        }
+
+        document.getElementById('size-info').addEventListener('input', e => rootVars.setProperty('--size-info', e.target.value + 'cqw'));
+        document.getElementById('size-vitals').addEventListener('input', e => rootVars.setProperty('--size-vitals', e.target.value + 'cqw'));
+        document.getElementById('size-notes').addEventListener('input', e => rootVars.setProperty('--size-notes', e.target.value + 'cqw'));
+        document.getElementById('size-rx').addEventListener('input', e => rootVars.setProperty('--size-rx', e.target.value + 'cqw'));
 
         // --- 4. View Switching and Data Transfer ---
         function generatePreview() {
-            // Map standard Vitals and Rx fields
             const fields = [
                 { form: 'form-bp', prev: 'prev-bp' },
                 { form: 'form-pr', prev: 'prev-pr' },
@@ -728,28 +762,20 @@
             fields.forEach(field => {
                 const formElement = document.getElementById(field.form);
                 const prevElement = document.getElementById(field.prev);
-                if (formElement && prevElement) {
-                    prevElement.innerText = formElement.value;
-                }
+                if (formElement && prevElement) prevElement.innerText = formElement.value;
             });
 
-            // --- DYNAMIC TOP BAR LOGIC (Language Based) ---
+            // Top Bar
             const lang = document.getElementById('lang-switch').value;
             const topBar = document.getElementById('top-bar-preview');
-            
-            // Set flex direction: rtl puts Name on the right, ltr puts Name on the left.
             topBar.dir = lang === 'ps' ? 'rtl' : 'ltr';
 
-            // Get translated labels for the top bar
             const dict = translations[lang];
-
-            // Fetch the inputted values
             const nameVal = document.getElementById('form-name').value;
             const ageVal = document.getElementById('form-age').value;
             const sexVal = document.getElementById('form-sex').value;
             const dateVal = document.getElementById('form-date').value;
 
-            // Inject the HTML layout cleanly
             topBar.innerHTML = `
                 <div class="top-bar-item">
                     <span class="top-bar-label">${dict.lbl_name}:</span>
@@ -769,10 +795,8 @@
                 </div>
             `;
 
-            // Switch views
             document.getElementById('form-view').style.display = 'none';
             document.getElementById('preview-view').style.display = 'flex';
-            
             window.scrollTo(0, 0);
         }
 
@@ -781,12 +805,12 @@
             document.getElementById('form-view').style.display = 'flex';
         }
 
-        // --- 5. PDF Generation Logic (Solves iOS Issues!) ---
+        // --- 5. HIGH-RES PDF GENERATION ---
         async function downloadPDF() {
             const btn = document.getElementById('btn-download');
             const originalText = btn.innerHTML;
             
-            btn.innerHTML = '⏳ Generating PDF...';
+            btn.innerHTML = '⏳ Generating HD PDF...';
             btn.disabled = true;
 
             try {
@@ -800,15 +824,18 @@
 
                 await new Promise(r => setTimeout(r, 100));
 
+                // Ultra HD Scale (4x) completely solves the "bad quality print" issue
                 const canvas = await html2canvas(container, {
-                    scale: 3, 
+                    scale: 4, 
                     useCORS: true,
-                    backgroundColor: '#ffffff'
+                    backgroundColor: '#ffffff',
+                    logging: false
                 });
 
                 container.style.width = origWidth;
                 container.style.maxWidth = origMaxWidth;
 
+                // High Quality JPEG Compression inside the PDF
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
                 const pdf = new jsPDF('p', 'mm', 'a4'); 
                 
@@ -826,5 +853,4 @@
     </script>
 </body>
 </html>
-
 
