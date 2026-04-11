@@ -237,6 +237,42 @@
             .grid-4 { grid-template-columns: 1fr 1fr; }
         }
 
+        /* Calendar Toggle */
+        .date-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .date-header label {
+            margin-bottom: 0; 
+        }
+
+        .calendar-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fafcff;
+            border: 1px solid var(--border);
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .cal-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .cal-label.active {
+            color: var(--teal);
+        }
+
         /* Vitals inline table */
         .vitals-table {
             display: grid;
@@ -449,6 +485,10 @@
             width: 38px; height: 22px;
             flex-shrink: 0;
         }
+        
+        .toggle-switch.small {
+            width: 30px; height: 16px;
+        }
 
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
 
@@ -472,8 +512,14 @@
             box-shadow: 0 1px 3px rgba(0,0,0,.2);
         }
 
+        .toggle-switch.small .toggle-track::after {
+            width: 12px; height: 12px;
+            left: 2px; top: 2px;
+        }
+
         .toggle-switch input:checked + .toggle-track { background: var(--teal); }
         .toggle-switch input:checked + .toggle-track::after { transform: translateX(16px); }
+        .toggle-switch.small input:checked + .toggle-track::after { transform: translateX(14px); }
 
         .toggle-label {
             font-size: 0.82rem;
@@ -600,14 +646,26 @@
         .top-bar-item { display: flex; gap: 5px; align-items: center; }
         .top-bar-label { font-weight: 700; }
 
-        /* Positioning — vitals start at the left edge of the vitals column */
-        #prev-bp     { top: 35.0%; left: 3%;  width: 28%; height: 1.8%; }
-        #prev-pr     { top: 38.0%; left: 3%;  width: 28%; height: 1.8%; }
-        #prev-hr     { top: 41.0%; left: 3%;  width: 28%; height: 1.8%; }
-        #prev-rr     { top: 44.2%; left: 3%;  width: 28%; height: 1.8%; }
-        #prev-temp   { top: 47.3%; left: 3%;  width: 28%; height: 1.8%; }
-        #prev-spo2   { top: 50.5%; left: 3%;  width: 28%; height: 1.8%; }
-        #prev-weight { top: 53.7%; left: 3%;  width: 28%; height: 1.8%; }
+        /* Positioning */
+        #prev-vitals-container {
+            position: absolute;
+            top: 35.0%; left: 3%;
+            width: 28%; height: 22%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 10;
+            color: var(--pen-color);
+            font-family: 'Outfit', 'Noto Naskh Arabic', sans-serif;
+        }
+
+        .vital-line {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
         #prev-record     { top: 62.5%; left: 2%; width: 30%; height: 12%; }
         #prev-impression { top: 75.5%; left: 2%; width: 30%; height: 12%; }
         #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
@@ -620,7 +678,6 @@
             line-height: 1.4;
             padding-bottom: 2px;
             margin-bottom: 4px;
-            border-bottom: 1.2pt solid var(--pen-color);
             white-space: nowrap;
         }
 
@@ -630,10 +687,15 @@
             line-height: 1.5;
         }
 
-        /* Bold override — also covers section headings */
+        /* Bold override */
         .force-bold .overlay-section-head,
-        .force-bold .overlay-section-body { font-weight: 700 !important; }
-        #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
+        .force-bold .overlay-section-body,
+        .force-bold .overlay-text,
+        .force-bold .overlay-textarea,
+        .force-bold .top-bar-value,
+        .force-bold .top-bar-label,
+        .force-bold .footer-line,
+        .force-bold .vital-line span { font-weight: 700 !important; }
 
         /* Footer */
         #prev-footer {
@@ -656,19 +718,8 @@
             align-items: center;
         }
 
-        #prev-phone {
-            /* always visible */
-        }
-
         .footer-line  { font-size: var(--size-footer); line-height: 1.4; }
         .footer-phone { font-size: calc(var(--size-footer) * 0.9); direction: ltr; margin-top: 4px; font-weight: 700; }
-
-        /* Bold override */
-        .force-bold .overlay-text,
-        .force-bold .overlay-textarea,
-        .force-bold .top-bar-value,
-        .force-bold .top-bar-label,
-        .force-bold .footer-line { font-weight: 700 !important; }
 
         /* Design border toggle */
         .rx-bordered::after {
@@ -788,7 +839,17 @@
                 <input type="text" id="form-name" dir="rtl" data-i18n-ph="ph_name" placeholder="اسم مریض">
             </div>
             <div class="field">
-                <label data-i18n="lbl_date">تاریخ - YYYY/MM/DD</label>
+                <div class="date-header">
+                    <label data-i18n="lbl_date">تاریخ</label>
+                    <div class="calendar-toggle">
+                        <span class="cal-label active" id="lbl-gregorian" onclick="setCalendarToggle(false)">GREGORIAN</span>
+                        <div class="toggle-switch small">
+                            <input type="checkbox" id="date-toggle" onchange="updateAutoDate()">
+                            <div class="toggle-track"></div>
+                        </div>
+                        <span class="cal-label" id="lbl-persian" onclick="setCalendarToggle(true)">PERSIAN</span>
+                    </div>
+                </div>
                 <input type="text" id="form-date" class="ltr-input" placeholder="YYYY/MM/DD" maxlength="10">
             </div>
         </div>
@@ -991,13 +1052,7 @@
 
         <div id="top-bar-preview" class="txt-info"></div>
 
-        <div id="prev-bp"     class="overlay-text txt-vitals"></div>
-        <div id="prev-pr"     class="overlay-text txt-vitals"></div>
-        <div id="prev-hr"     class="overlay-text txt-vitals"></div>
-        <div id="prev-rr"     class="overlay-text txt-vitals"></div>
-        <div id="prev-temp"   class="overlay-text txt-vitals"></div>
-        <div id="prev-spo2"   class="overlay-text txt-vitals"></div>
-        <div id="prev-weight" class="overlay-text txt-vitals"></div>
+        <div id="prev-vitals-container"></div>
 
         <div id="prev-record"     class="overlay-text overlay-textarea txt-notes"></div>
         <div id="prev-impression" class="overlay-text overlay-textarea txt-notes"></div>
@@ -1024,7 +1079,7 @@
     const T = {
         en: {
             sec_patient:"Patient Information", lbl_name:"Name", ph_name:"Patient Name",
-            lbl_date:"Date - YYYY/MM/DD", lbl_age:"Age / DOB", ph_age:"Age or DOB",
+            lbl_date:"Date", lbl_age:"Age / DOB", ph_age:"Age or DOB",
             lbl_sex:"Sex", ph_sex:"Male / Female",
             sec_vitals:"Vitals", lbl_weight:"Weight",
             sec_notes:"Clinical Notes",
@@ -1037,11 +1092,11 @@
             color_label:"Pen Color:", bold_label:"Bold All", address_label:"Show Address",
             sl_info:"Top Info", sl_vitals:"Vitals", sl_notes:"Notes", sl_rx:"Prescription",
             sec_address:"Address & Contact", lbl_address:"Clinic Address", lbl_phone:"Phone Numbers",
-            border_label:"Border", lbl_weight:"Weight"
+            border_label:"Border"
         },
         ps: {
             sec_patient:"د ناروغ معلومات", lbl_name:"اسم", ph_name:"اسم مریض",
-            lbl_date:"تاریخ - YYYY/MM/DD", lbl_age:"سن", ph_age:"سن مریض",
+            lbl_date:"تاریخ", lbl_age:"سن", ph_age:"سن مریض",
             lbl_sex:"جنس", ph_sex:"نارینه / ښځینه",
             sec_vitals:"حیاتي نښې", lbl_weight:"وزن",
             sec_notes:"کلینیکي یادښتونه",
@@ -1078,28 +1133,42 @@
         });
         document.getElementById('lang-ps').classList.toggle('active', lang === 'ps');
         document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-        setAutoDate(lang);
     }
 
-    function setAutoDate(lang) {
+    function setCalendarToggle(isPersian) {
+        document.getElementById('date-toggle').checked = isPersian;
+        updateAutoDate();
+    }
+
+    function updateAutoDate() {
         try {
+            const isPersian = document.getElementById('date-toggle').checked;
+            
+            // Visual active state handling
+            document.getElementById('lbl-gregorian').classList.toggle('active', !isPersian);
+            document.getElementById('lbl-persian').classList.toggle('active', isPersian);
+
+            const calendar = isPersian ? 'persian' : 'gregory';
+            const fmt = new Intl.DateTimeFormat('en-US-u-ca-' + calendar, {year:'numeric',month:'2-digit',day:'2-digit'});
             const date = new Date();
-            let fmt;
-            if (lang === 'ps') {
-                fmt = new Intl.DateTimeFormat('en-US-u-ca-persian', {year:'numeric',month:'2-digit',day:'2-digit'});
-            } else {
-                fmt = new Intl.DateTimeFormat('en-US', {year:'numeric',month:'2-digit',day:'2-digit'});
-            }
             const p = fmt.formatToParts(date);
-            const y = p.find(x=>x.type==='year').value;
-            const m = p.find(x=>x.type==='month').value;
-            const d = p.find(x=>x.type==='day').value;
-            document.getElementById('form-date').value = `${y}/${m}/${d}`;
-        } catch(e) {}
+            
+            // Extracts value reliably while preventing labels from polluting the string
+            const y = p.find(x => x.type === 'year' || x.type === 'relatedYear')?.value || '';
+            const m = p.find(x => x.type === 'month')?.value || '';
+            const d = p.find(x => x.type === 'day')?.value || '';
+            
+            if (y && m && d) {
+                document.getElementById('form-date').value = `${y}/${m}/${d}`;
+            }
+        } catch(e) {
+            console.error("Date formatting error:", e);
+        }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
         switchLang('ps');
+        updateAutoDate(); // Load default date based on toggle (Gregorian)
         initSliders();
     });
 
@@ -1155,31 +1224,39 @@
     function generatePreview() {
         const dict = T[currentLang];
 
-        // ── Vitals: inject "Label = value" for each row
+        // ── Vitals: Render all systematically into flex container
         const vitals = [
-            { form:'form-bp',     prev:'prev-bp',     label:'BP'     },
-            { form:'form-pr',     prev:'prev-pr',     label:'PR'     },
-            { form:'form-hr',     prev:'prev-hr',     label:'HR'     },
-            { form:'form-rr',     prev:'prev-rr',     label:'RR'     },
-            { form:'form-temp',   prev:'prev-temp',   label:'Temp'   },
-            { form:'form-spo2',   prev:'prev-spo2',   label:'SpO₂'  },
-            { form:'form-weight', prev:'prev-weight', label:'Weight' },
+            { form:'form-bp',     label:'BP'     },
+            { form:'form-pr',     label:'PR'     },
+            { form:'form-hr',     label:'HR'     },
+            { form:'form-rr',     label:'RR'     },
+            { form:'form-temp',   label:'Temp'   },
+            { form:'form-spo2',   label:'SpO₂'  },
+            { form:'form-weight', label:'Weight' },
         ];
-        vitals.forEach(({ form, prev, label }) => {
-            const val = document.getElementById(form).value;
-            document.getElementById(prev).innerText = val ? `${label} = ${val}` : '';
-        });
+        
+        const vitalsHtml = vitals.map(({ form, label }) => {
+            const val = document.getElementById(form).value || '';
+            return `
+                <div class="vital-line">
+                    <span style="font-size: var(--size-notes); font-weight: 700;">${label}</span>
+                    <span style="font-size: var(--size-notes); font-weight: 700;">=</span>
+                    <span style="font-size: var(--size-vitals);">${val}</span>
+                </div>
+            `;
+        }).join('');
+        document.getElementById('prev-vitals-container').innerHTML = vitalsHtml;
 
-        // ── Clinical Record: heading + body
+        // ── Clinical Record: hardcoded heading + body
         const recordVal = document.getElementById('form-record').value;
         document.getElementById('prev-record').innerHTML =
-            `<span class="overlay-section-head">${dict.lbl_record}</span>` +
+            `<span class="overlay-section-head">Clinical Records</span>` +
             `<span class="overlay-section-body">${escHtml(recordVal)}</span>`;
 
-        // ── Impression: heading + body
+        // ── Impression: hardcoded heading + body
         const impVal = document.getElementById('form-impression').value;
         document.getElementById('prev-impression').innerHTML =
-            `<span class="overlay-section-head">${dict.lbl_impression}</span>` +
+            `<span class="overlay-section-head">Impression</span>` +
             `<span class="overlay-section-body">${escHtml(impVal)}</span>`;
 
         // ── Rx (no heading change — background already has Rx)
@@ -1269,12 +1346,6 @@
             /* Brief layout settle */
             await new Promise(r => setTimeout(r, 150));
 
-            /*
-             * QUALITY FIX:
-             * - scale: 6  →  4800px wide capture at 300ppi equivalent
-             * - PNG (lossless) instead of JPEG — zero compression artifacts on text
-             * - imageCompression via addImage quality = 1.0
-             */
             const canvas = await html2canvas(container, {
                 scale:           6,
                 useCORS:         true,
@@ -1288,7 +1359,7 @@
             container.style.width    = savedW;
             container.style.maxWidth = savedMW;
 
-            const imgData = canvas.toDataURL('image/png');   // lossless
+            const imgData = canvas.toDataURL('image/png');
             const pdf     = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
             pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, '', 'FAST');
             pdf.save('Prescription.pdf');
