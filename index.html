@@ -1,356 +1,582 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prescription Generator</title>
-    
-    <!-- Libraries for generating perfect PDFs directly in the browser -->
+    <title>Rx Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <style>
-        /* =========================================
-           GLOBAL STYLES
-           ========================================= */
+        /* ============================================================
+           DESIGN TOKENS
+           ============================================================ */
         :root {
-            --primary-color: #0056b3;
-            --primary-hover: #003d82;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333;
-            --border-color: #ddd;
-            
-            /* Dynamic Print Variables */
-            --pen-color: #1a1a1a; 
-            --size-info: 2cqw;
+            --navy:     #0d2b52;
+            --navy-mid: #1a4480;
+            --teal:     #0891b2;
+            --teal-lt:  #e0f4f9;
+            --accent:   #06b6d4;
+            --green:    #059669;
+            --green-lt: #d1fae5;
+            --red:      #dc2626;
+            --bg:       #f0f4f8;
+            --surface:  #ffffff;
+            --border:   #dde4ec;
+            --text-1:   #0f1923;
+            --text-2:   #4a5a6b;
+            --text-3:   #8a97a5;
+            --radius:   12px;
+            --radius-sm:8px;
+            --shadow-sm: 0 1px 3px rgba(13,43,82,.06), 0 1px 2px rgba(13,43,82,.04);
+            --shadow:    0 4px 16px rgba(13,43,82,.08), 0 1px 4px rgba(13,43,82,.04);
+            --shadow-lg: 0 12px 40px rgba(13,43,82,.14);
+            /* print overlay vars */
+            --pen-color: #1a1a1a;
+            --size-info:   2cqw;
             --size-vitals: 1.8cqw;
-            --size-notes: 2cqw;
-            --size-rx: 2.2cqw;
+            --size-notes:  2cqw;
+            --size-rx:     2.2cqw;
             --size-footer: 1.6cqw;
         }
 
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         html, body {
-            background-color: var(--bg-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            color: var(--text-color);
-            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text-1);
+            min-height: 100vh;
         }
 
-        *, *::before, *::after {
-            box-sizing: inherit;
+        /* ============================================================
+           LAYOUT SHELL
+           ============================================================ */
+        .app-header {
+            background: var(--navy);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            box-shadow: 0 2px 12px rgba(13,43,82,.3);
         }
 
-        /* =========================================
-           DATA ENTRY FORM VIEW
-           ========================================= */
-        #form-view {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            display: flex; 
-            flex-direction: column;
-            gap: 20px;
-            padding-bottom: 80px; 
-        }
-
-        .header-title {
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        .form-section {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border-top: 4px solid var(--primary-color);
-        }
-
-        .form-section h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: var(--primary-color);
+        .app-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
             font-size: 1.1rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #555;
+        .logo-icon svg { color: #fff; }
+
+        .lang-pill {
+            display: flex;
+            background: rgba(255,255,255,.1);
+            border-radius: 8px;
+            padding: 3px;
+            gap: 2px;
         }
 
-        .form-group input, 
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+        .lang-pill button {
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,.65);
             font-family: inherit;
-            font-size: 1rem;
-            transition: border-color 0.2s;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .lang-pill button.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ============================================================
+           FORM VIEW
+           ============================================================ */
+        #form-view {
+            max-width: 740px;
+            margin: 0 auto;
+            padding: 28px 20px 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .step-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            padding: 22px 24px;
+            animation: fadeUp .35s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .card-title .icon-badge {
+            width: 30px; height: 30px;
+            background: var(--teal-lt);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--teal);
+            flex-shrink: 0;
+        }
+
+        /* Floating label inputs */
+        .field {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-2);
+            margin-bottom: 5px;
+            letter-spacing: 0.2px;
+        }
+
+        .field input,
+        .field textarea,
+        .field select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text-1);
+            background: #fafcff;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+            appearance: none;
+        }
+
+        .field input:focus,
+        .field textarea:focus,
+        .field select:focus {
+            outline: none;
+            border-color: var(--teal);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(8,145,178,.12);
+        }
+
+        .field textarea { resize: vertical; min-height: 80px; line-height: 1.55; }
+        .field #form-rx { min-height: 150px; font-size: 1rem; }
+
+        .ltr-input { direction: ltr !important; text-align: left !important; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+        @media (max-width: 560px) {
+            .grid-2 { grid-template-columns: 1fr 1fr; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .grid-4 { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 380px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .grid-4 { grid-template-columns: 1fr 1fr; }
+        }
+
+        /* Vitals compact inputs */
+        .vital-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .vital-group label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-3);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .vital-group input {
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 9px 8px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fafcff;
+            color: var(--text-1);
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s;
             box-sizing: border-box;
         }
 
-        .ltr-input {
-            direction: ltr !important;
-            text-align: left !important;
-        }
-
-        .form-group input:focus, 
-        .form-group textarea:focus,
-        .form-group select:focus {
+        .vital-group input:focus {
             outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+            border-color: var(--teal);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(8,145,178,.12);
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        #form-rx {
-            min-height: 150px;
-            font-size: 1.1rem;
-            line-height: 1.4;
-        }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 15px; }
-        .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 15px; }
-
+        /* ============================================================
+           ACTION BAR
+           ============================================================ */
         .action-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 15px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            bottom: 0; left: 0; right: 0;
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border);
+            padding: 12px 20px;
             display: flex;
             justify-content: center;
             z-index: 100;
         }
 
         .btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            width: 100%;
-            max-width: 400px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 12px 28px;
+            transition: all .2s;
+            letter-spacing: 0.2px;
         }
 
-        .btn:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
-        .btn:active { transform: translateY(0); }
-        
-        .btn-secondary { background-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
-        
-        .btn-success { background-color: #28a745; }
-        .btn-success:hover { background-color: #218838; }
+        .btn-primary {
+            background: var(--navy);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(13,43,82,.35);
+            width: 100%;
+            max-width: 420px;
+            font-size: 1rem;
+        }
 
-        /* =========================================
-           PREVIEW & PRINT VIEW
-           ========================================= */
+        .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(13,43,82,.4); }
+        .btn-primary:active { transform: none; }
+
+        .btn-ghost {
+            background: var(--surface);
+            color: var(--text-2);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+        .btn-teal { background: var(--teal); color: #fff; box-shadow: 0 3px 10px rgba(8,145,178,.3); }
+        .btn-teal:hover { background: #0770a0; transform: translateY(-1px); }
+
+        .btn-green { background: var(--green); color: #fff; box-shadow: 0 3px 10px rgba(5,150,105,.3); }
+        .btn-green:hover { background: #047a56; transform: translateY(-1px); }
+
+        .btn:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
+
+        /* ============================================================
+           PREVIEW VIEW
+           ============================================================ */
         #preview-view {
-            display: none; 
+            display: none;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 24px 20px 40px;
             gap: 20px;
         }
 
-        .preview-controls {
+        .preview-toolbar {
             display: flex;
+            gap: 10px;
             flex-wrap: wrap;
-            gap: 15px;
             width: 100%;
             max-width: 800px;
             justify-content: center;
         }
 
-        .font-controls {
-            background: var(--card-bg);
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        /* Controls panel */
+        .controls-panel {
             width: 100%;
             max-width: 800px;
-            border: 1px solid var(--border-color);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
         }
 
-        .font-controls h4 {
-            margin: 0 0 15px 0;
-            color: #555;
-            font-size: 0.95rem;
-            text-align: center;
-        }
-
-        .color-controls {
+        .controls-panel-header {
+            background: var(--navy);
+            color: #fff;
+            padding: 12px 20px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
             display: flex;
-            justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .color-controls label {
-            font-weight: 600;
-            color: #444;
-            font-size: 0.9rem;
-            margin-right: 5px;
+            gap: 8px;
         }
 
-        .color-btn {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            padding: 0;
-        }
-
-        .color-btn.active {
-            transform: scale(1.15);
-            box-shadow: 0 0 0 2px white inset, 0 0 0 2px var(--primary-color);
-        }
-
-        .font-controls-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .slider-group {
+        .controls-panel-body {
+            padding: 18px 20px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 18px;
         }
 
-        .slider-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #444;
+        .controls-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
         }
 
-        .slider-group input[type="range"] {
-            width: 100%;
+        .controls-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-2);
+            white-space: nowrap;
+        }
+
+        /* Color swatches */
+        .swatch-group { display: flex; gap: 8px; align-items: center; }
+
+        .swatch {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            border: 2.5px solid transparent;
+            cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+            padding: 0;
+            outline: none;
+        }
+
+        .swatch:hover { transform: scale(1.15); }
+
+        .swatch.active {
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--navy);
+            transform: scale(1.1);
+        }
+
+        /* Toggle switch */
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             cursor: pointer;
         }
 
-        /* Container */
+        .toggle-switch {
+            position: relative;
+            width: 38px; height: 22px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: var(--border);
+            border-radius: 11px;
+            transition: background .2s;
+            cursor: pointer;
+        }
+
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            left: 3px; top: 3px;
+            width: 16px; height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform .2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,.2);
+        }
+
+        .toggle-switch input:checked + .toggle-track { background: var(--teal); }
+        .toggle-switch input:checked + .toggle-track::after { transform: translateX(16px); }
+
+        .toggle-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-2);
+            cursor: pointer;
+        }
+
+        /* Slider controls */
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+        }
+
+        .slider-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slider-item-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slider-item label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-2);
+        }
+
+        .slider-val {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--teal);
+            background: var(--teal-lt);
+            padding: 1px 7px;
+            border-radius: 20px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 3px;
+            background: var(--border);
+            cursor: pointer;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--navy);
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,.2);
+            transition: transform .15s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        input[type="range"]::-webkit-slider-runnable-track { border-radius: 3px; }
+
+        /* Divider */
+        .divider { height: 1px; background: var(--border); }
+
+        /* ============================================================
+           PRESCRIPTION CONTAINER (the actual pad)
+           ============================================================ */
         .prescription-container {
             position: relative;
             width: 100%;
-            max-width: 800px; 
+            max-width: 800px;
             aspect-ratio: 719 / 1024;
-            /* NEW BACKGROUND WITHOUT ADDRESS */
-            background-image: url('18624.jpg'); 
+            background-image: url('18624.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            background-color: white; 
-            container-type: inline-size; 
-            border-radius: 4px;
-        }
-
-        /* DYNAMIC TOP BAR */
-        #top-bar-preview {
-            position: absolute;
-            top: 29.8%;
-            left: 4.5%;
-            width: 91%;
-            height: 3.5%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between; 
-            z-index: 10;
-            color: var(--pen-color);
-        }
-
-        .top-bar-item {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .top-bar-label {
-            font-weight: 600; 
+            background-color: white;
+            box-shadow: var(--shadow-lg);
+            border-radius: 6px;
+            container-type: inline-size;
+            overflow: hidden;
         }
 
         /* Overlays */
         .overlay-text {
             position: absolute;
-            font-family: inherit;
+            font-family: 'Outfit', 'Noto Naskh Arabic', sans-serif;
             color: var(--pen-color);
             padding: 0 6px;
             box-sizing: border-box;
             z-index: 10;
-            white-space: nowrap; 
-            overflow: visible; 
+            white-space: nowrap;
+            overflow: visible;
             line-height: 1.2;
         }
 
-        .overlay-textarea {
-            white-space: pre-wrap; 
-        }
+        .overlay-textarea { white-space: pre-wrap; }
 
-        /* Dynamic Font Size Classes */
-        .txt-info { font-size: var(--size-info); }
+        .txt-info   { font-size: var(--size-info); }
         .txt-vitals { font-size: var(--size-vitals); }
-        .txt-notes { font-size: var(--size-notes); }
-        .txt-rx { 
-            font-size: var(--size-rx); 
-            line-height: 1.5;
-            font-weight: 500;
+        .txt-notes  { font-size: var(--size-notes); }
+        .txt-rx     { font-size: var(--size-rx); line-height: 1.55; font-weight: 500; }
+
+        #top-bar-preview {
+            position: absolute;
+            top: 29.8%; left: 4.5%;
+            width: 91%; height: 3.5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+            color: var(--pen-color);
         }
 
-        /* Bold Switch Logic */
-        .force-bold .overlay-text,
-        .force-bold .overlay-textarea,
-        .force-bold .top-bar-value,
-        .force-bold .top-bar-label,
-        .force-bold .txt-info,
-        .force-bold .txt-vitals,
-        .force-bold .txt-notes,
-        .force-bold .txt-rx,
-        .force-bold .footer-line {
-            font-weight: bold !important;
-        }
+        .top-bar-item { display: flex; gap: 5px; align-items: center; }
+        .top-bar-label { font-weight: 700; }
 
-        /* =========================================
-           POSITIONING (Vitals & Rx)
-           ========================================= */
+        /* Positioning */
         #prev-bp     { top: 35.0%; left: 13%; width: 16%; height: 1.8%; }
         #prev-pr     { top: 38.0%; left: 13%; width: 16%; height: 1.8%; }
         #prev-hr     { top: 41.0%; left: 13%; width: 16%; height: 1.8%; }
@@ -358,18 +584,14 @@
         #prev-temp   { top: 47.3%; left: 15%; width: 14%; height: 1.8%; }
         #prev-spo2   { top: 50.5%; left: 14%; width: 15%; height: 1.8%; }
         #prev-weight { top: 53.7%; left: 18%; width: 11%; height: 1.8%; }
-
         #prev-record     { top: 64.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-impression { top: 76.5%; left: 3%; width: 28%; height: 9.5%; }
         #prev-rx         { top: 40%;   left: 34%; width: 62%; height: 48%; }
 
-        /* =========================================
-           DYNAMIC ADDRESS FOOTER
-           ========================================= */
+        /* Footer */
         #prev-footer {
             position: absolute;
-            bottom: 4%; /* Near the bottom of the page */
-            left: 5%;
+            bottom: 4%; left: 5%;
             width: 90%;
             display: flex;
             flex-direction: column;
@@ -378,479 +600,613 @@
             text-align: center;
             z-index: 10;
             color: var(--pen-color);
-            font-family: inherit;
+            font-family: 'Outfit', 'Noto Naskh Arabic', sans-serif;
         }
 
-        .footer-line {
-            font-size: var(--size-footer);
-            line-height: 1.4;
-        }
-        
-        .footer-phone {
-            font-size: calc(var(--size-footer) * 0.9);
-            direction: ltr; /* Phones always LTR */
-            margin-top: 4px;
-            font-weight: bold;
+        #prev-address {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* =========================================
-           NATIVE PRINT STYLES
-           ========================================= */
+        #prev-phone {
+            /* always visible */
+        }
+
+        .footer-line  { font-size: var(--size-footer); line-height: 1.4; }
+        .footer-phone { font-size: calc(var(--size-footer) * 0.9); direction: ltr; margin-top: 4px; font-weight: 700; }
+
+        /* Bold override */
+        .force-bold .overlay-text,
+        .force-bold .overlay-textarea,
+        .force-bold .top-bar-value,
+        .force-bold .top-bar-label,
+        .force-bold .footer-line { font-weight: 700 !important; }
+
+        /* ============================================================
+           PRINT STYLES
+           ============================================================ */
         @media print {
-            @page {
-                size: 210mm 297mm;
-                margin: 0;
-            }
+            @page { size: 210mm 297mm; margin: 0; }
+
             html, body {
-                width: 210mm;
-                height: 297mm;
-                margin: 0;
-                padding: 0;
-                background-color: white;
-                overflow: hidden; 
+                width: 210mm; height: 297mm;
+                margin: 0; padding: 0;
+                background: white; overflow: hidden;
             }
-            #form-view, .preview-controls, .font-controls { display: none !important; }
-            #preview-view { display: block !important; padding: 0; margin: 0; }
+
+            .app-header, #form-view, .preview-toolbar,
+            .controls-panel { display: none !important; }
+
+            #preview-view { display: block !important; padding: 0; }
+
             .prescription-container {
                 width: 210mm !important;
                 height: 297mm !important;
                 max-width: none !important;
                 aspect-ratio: auto;
-                background-size: 100% 100%; 
-                box-shadow: none;
-                border-radius: 0;
+                background-size: 100% 100%;
+                box-shadow: none; border-radius: 0;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-                color-adjust: exact !important;
             }
         }
+
+        /* ============================================================
+           TOAST NOTIFICATION
+           ============================================================ */
+        .toast {
+            position: fixed;
+            bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--navy);
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 100px;
+            font-size: 0.87rem;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(13,43,82,.35);
+            z-index: 9999;
+            transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+            opacity: 0;
+            white-space: nowrap;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* ============================================================
+           PROGRESS RING ON PDF BUTTON
+           ============================================================ */
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2.5px solid rgba(255,255,255,.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <!-- ==========================================
-         VIEW 1: DATA ENTRY FORM
-         ========================================== -->
-    <div id="form-view">
-        <h2 class="header-title" data-i18n="title">نسخه جوړول</h2>
+<!-- ================================================================
+     APP HEADER
+     ================================================================ -->
+<header class="app-header">
+    <div class="logo">
+        <div class="logo-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+            </svg>
+        </div>
+        <span>Rx Generator</span>
+    </div>
+    <div class="lang-pill">
+        <button id="lang-ps" class="active" onclick="switchLang('ps')">پښتو</button>
+        <button id="lang-en" onclick="switchLang('en')">EN</button>
+    </div>
+</header>
 
-        <!-- Language Switcher -->
-        <div class="form-section">
-            <h3 data-i18n="lang_label">بڼه / ژبه (Format / Language)</h3>
-            <div class="form-group">
-                <select id="lang-switch" onchange="updateLanguage()">
-                    <option value="ps">Pashto (راست به چپ)</option>
-                    <option value="en">English (Left to Right)</option>
-                </select>
+
+<!-- ================================================================
+     VIEW 1 — DATA ENTRY FORM
+     ================================================================ -->
+<div id="form-view">
+
+    <!-- Patient Info -->
+    <div style="animation-delay:.05s" class="card">
+        <div class="card-title">
+            <div class="icon-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <span data-i18n="sec_patient">د ناروغ معلومات</span>
+        </div>
+        <div class="grid-2">
+            <div class="field">
+                <label data-i18n="lbl_name">اسم</label>
+                <input type="text" id="form-name" dir="rtl" data-i18n-ph="ph_name" placeholder="اسم مریض">
+            </div>
+            <div class="field">
+                <label data-i18n="lbl_date">تاریخ - YYYY/MM/DD</label>
+                <input type="text" id="form-date" class="ltr-input" placeholder="YYYY/MM/DD" maxlength="10">
             </div>
         </div>
-
-        <!-- Patient Info -->
-        <div class="form-section">
-            <h3 data-i18n="sec_patient">د ناروغ معلومات</h3>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label data-i18n="lbl_name">اسم</label>
-                    <input type="text" id="form-name" dir="rtl" data-i18n-ph="ph_name" placeholder="اسم مریض">
-                </div>
-                <div class="form-group">
-                    <label data-i18n="lbl_date">تاریخ - YYYY/MM/DD</label>
-                    <input type="text" id="form-date" class="ltr-input" placeholder="YYYY/MM/DD" maxlength="10">
-                </div>
+        <div class="grid-2">
+            <div class="field">
+                <label data-i18n="lbl_age">سن</label>
+                <input type="text" id="form-age" class="ltr-input" data-i18n-ph="ph_age" placeholder="سن مریض">
             </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label data-i18n="lbl_age">سن</label>
-                    <input type="text" id="form-age" class="ltr-input" data-i18n-ph="ph_age" placeholder="سن مریض">
-                </div>
-                <div class="form-group">
-                    <label data-i18n="lbl_sex">جنس</label>
-                    <input type="text" id="form-sex" dir="rtl" data-i18n-ph="ph_sex" placeholder="نارینه / ښځینه">
-                </div>
+            <div class="field">
+                <label data-i18n="lbl_sex">جنس</label>
+                <input type="text" id="form-sex" dir="rtl" data-i18n-ph="ph_sex" placeholder="نارینه / ښځینه">
             </div>
-        </div>
-
-        <!-- Vitals -->
-        <div class="form-section">
-            <h3 data-i18n="sec_vitals">حیاتي نښې</h3>
-            <div class="grid-4">
-                <div class="form-group"><label>BP</label><input type="text" id="form-bp" class="ltr-input"></div>
-                <div class="form-group"><label>PR</label><input type="text" id="form-pr" class="ltr-input"></div>
-                <div class="form-group"><label>HR</label><input type="text" id="form-hr" class="ltr-input"></div>
-                <div class="form-group"><label>RR</label><input type="text" id="form-rr" class="ltr-input"></div>
-            </div>
-            <div class="grid-3">
-                <div class="form-group"><label>Temp</label><input type="text" id="form-temp" class="ltr-input"></div>
-                <div class="form-group"><label>SpO2</label><input type="text" id="form-spo2" class="ltr-input"></div>
-                <div class="form-group"><label data-i18n="lbl_weight">وزن</label><input type="text" id="form-weight" class="ltr-input"></div>
-            </div>
-        </div>
-
-        <!-- Clinical Notes -->
-        <div class="form-section">
-            <h3 data-i18n="sec_notes">کلینیکي یادښتونه</h3>
-            <div class="form-group">
-                <label data-i18n="lbl_record">کلینیکي ریکارډ</label>
-                <textarea id="form-record" data-i18n-ph="ph_record" placeholder="کلینیکي ریکارډ ولیکئ..." dir="rtl"></textarea>
-            </div>
-            <div class="form-group">
-                <label data-i18n="lbl_impression">تشخیص (Impression)</label>
-                <textarea id="form-impression" data-i18n-ph="ph_impression" placeholder="تشخیص ولیکئ..." dir="rtl"></textarea>
-            </div>
-        </div>
-
-        <!-- Prescription (Rx) -->
-        <div class="form-section">
-            <h3 data-i18n="sec_rx">نسخه (Rx)</h3>
-            <div class="form-group">
-                <textarea id="form-rx" data-i18n-ph="ph_rx" placeholder="1. Medicine A - 1x/day&#10;2. Medicine B - 2x/day" dir="ltr"></textarea>
-            </div>
-        </div>
-
-        <!-- Sticky Action Bar -->
-        <div class="action-bar">
-            <button class="btn" onclick="generatePreview()">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                <span data-i18n="btn_preview">مخکتنه او چاپ</span>
-            </button>
         </div>
     </div>
 
-
-    <!-- ==========================================
-         VIEW 2: PREVIEW & PRINT LAYOUT
-         ========================================== -->
-    <div id="preview-view">
-        <div class="preview-controls">
-            <button class="btn btn-secondary" onclick="backToEdit()" style="flex: 1; max-width: 200px;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                <span data-i18n="btn_edit">سمون (Edit)</span>
-            </button>
-            <button class="btn" onclick="window.print()" style="flex: 1; max-width: 200px;" title="Standard PC Print">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                <span data-i18n="btn_print">عادي چاپ</span>
-            </button>
-            <button class="btn btn-success" id="btn-download" onclick="downloadPDF()" style="flex: 2; max-width: 300px;">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span data-i18n="btn_pdf">PDF ډاونلوډ کړئ</span>
-            </button>
+    <!-- Vitals -->
+    <div style="animation-delay:.1s" class="card">
+        <div class="card-title">
+            <div class="icon-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <span data-i18n="sec_vitals">حیاتي نښې</span>
         </div>
+        <div class="grid-4" style="margin-bottom:12px">
+            <div class="vital-group"><label>BP</label><input type="text" id="form-bp" class="ltr-input"></div>
+            <div class="vital-group"><label>PR</label><input type="text" id="form-pr" class="ltr-input"></div>
+            <div class="vital-group"><label>HR</label><input type="text" id="form-hr" class="ltr-input"></div>
+            <div class="vital-group"><label>RR</label><input type="text" id="form-rr" class="ltr-input"></div>
+        </div>
+        <div class="grid-3">
+            <div class="vital-group"><label>Temp</label><input type="text" id="form-temp" class="ltr-input"></div>
+            <div class="vital-group"><label>SpO₂</label><input type="text" id="form-spo2" class="ltr-input"></div>
+            <div class="vital-group"><label data-i18n="lbl_weight">وزن</label><input type="text" id="form-weight" class="ltr-input"></div>
+        </div>
+    </div>
 
-        <!-- Font Adjustment Controls -->
-        <div class="font-controls">
-            <h4 data-i18n="font_title">د چاپ دمخه د متن اختیارونه تنظیم کړئ</h4>
-            
-            <div class="color-controls">
-                <label data-i18n="color_label">د قلم رنګ:</label>
-                <button class="color-btn active" style="background: #1a1a1a;" onclick="setPenColor('#1a1a1a', this)"></button>
-                <button class="color-btn" style="background: #0033cc;" onclick="setPenColor('#0033cc', this)"></button>
-                <button class="color-btn" style="background: #cc0000;" onclick="setPenColor('#cc0000', this)"></button>
-                
-                <!-- BOLD TOGGLE -->
-                <div style="margin-left: 15px; border-left: 2px solid #eee; padding-left: 15px; display: flex; align-items: center; gap: 6px;">
-                    <input type="checkbox" id="bold-toggle" onchange="toggleBold(this)" style="width: 18px; height: 18px; cursor: pointer;">
-                    <label for="bold-toggle" style="margin: 0; cursor: pointer;" data-i18n="bold_label">ټول متن روښانه (Bold) کړئ</label>
+    <!-- Clinical Notes -->
+    <div style="animation-delay:.15s" class="card">
+        <div class="card-title">
+            <div class="icon-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <span data-i18n="sec_notes">کلینیکي یادښتونه</span>
+        </div>
+        <div class="field">
+            <label data-i18n="lbl_record">کلینیکي ریکارډ</label>
+            <textarea id="form-record" data-i18n-ph="ph_record" placeholder="کلینیکي ریکارډ ولیکئ..." dir="rtl"></textarea>
+        </div>
+        <div class="field">
+            <label data-i18n="lbl_impression">تشخیص (Impression)</label>
+            <textarea id="form-impression" data-i18n-ph="ph_impression" placeholder="تشخیص ولیکئ..." dir="rtl"></textarea>
+        </div>
+    </div>
+
+    <!-- Rx -->
+    <div style="animation-delay:.2s" class="card">
+        <div class="card-title">
+            <div class="icon-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/></svg>
+            </div>
+            <span data-i18n="sec_rx">نسخه (Rx)</span>
+        </div>
+        <div class="field">
+            <textarea id="form-rx" data-i18n-ph="ph_rx" placeholder="1. Medicine A - 1x/day&#10;2. Medicine B - 2x/day" dir="ltr"></textarea>
+        </div>
+    </div>
+
+    <!-- Address & Contact -->
+    <div style="animation-delay:.22s" class="card">
+        <div class="card-title">
+            <div class="icon-badge">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <span data-i18n="sec_address">آدرس او تلیفون</span>
+        </div>
+        <div class="field">
+            <label data-i18n="lbl_address">آدرس</label>
+            <textarea id="form-address" dir="rtl" rows="2" style="min-height:60px">کلینیک عمر گلستان، شهرک عمر گلستان مکروریان سوم</textarea>
+        </div>
+        <div class="field">
+            <label data-i18n="lbl_phone">تلیفون</label>
+            <input type="text" id="form-phone" class="ltr-input" value="+93 778019660 | +93 788294148 | +93 728385404">
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn btn-primary" onclick="generatePreview()">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span data-i18n="btn_preview">مخکتنه او چاپ</span>
+        </button>
+    </div>
+</div>
+
+
+<!-- ================================================================
+     VIEW 2 — PREVIEW
+     ================================================================ -->
+<div id="preview-view">
+
+    <div class="preview-toolbar">
+        <button class="btn btn-ghost" onclick="backToEdit()" style="gap:7px">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span data-i18n="btn_edit">سمون (Edit)</span>
+        </button>
+        <button class="btn btn-teal" onclick="window.print()" style="gap:7px">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span data-i18n="btn_print">عادي چاپ</span>
+        </button>
+        <button class="btn btn-green" id="btn-download" onclick="downloadPDF()" style="gap:7px; flex:1.5; max-width:260px">
+            <div class="spinner" id="pdf-spinner"></div>
+            <svg id="pdf-icon" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="pdf-btn-text" data-i18n="btn_pdf">PDF ډاونلوډ کړئ</span>
+        </button>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+        <div class="controls-panel-header">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            <span data-i18n="font_title">د چاپ دمخه د متن اختیارونه</span>
+        </div>
+        <div class="controls-panel-body">
+
+            <!-- Row 1: Color + Toggles -->
+            <div class="controls-row">
+                <span class="controls-label" data-i18n="color_label">د قلم رنګ:</span>
+                <div class="swatch-group">
+                    <button class="swatch active" style="background:#1a1a1a" onclick="setPenColor('#1a1a1a',this)" title="Black"></button>
+                    <button class="swatch" style="background:#1535a0" onclick="setPenColor('#1535a0',this)" title="Blue"></button>
+                    <button class="swatch" style="background:#b91c1c" onclick="setPenColor('#b91c1c',this)" title="Red"></button>
+                    <button class="swatch" style="background:#065f46" onclick="setPenColor('#065f46',this)" title="Dark Green"></button>
                 </div>
 
-                <!-- ADDRESS FOOTER TOGGLE -->
-                <div style="margin-left: 15px; border-left: 2px solid #eee; padding-left: 15px; display: flex; align-items: center; gap: 6px;">
-                    <input type="checkbox" id="address-toggle" onchange="toggleAddress(this)" checked style="width: 18px; height: 18px; cursor: pointer;">
-                    <label for="address-toggle" style="margin: 0; cursor: pointer;" data-i18n="address_label">پته ښودل (Show Address)</label>
-                </div>
+                <div style="width:1px; height:22px; background:var(--border); margin:0 4px"></div>
+
+                <label class="toggle-wrap" for="bold-toggle">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="bold-toggle" onchange="toggleBold(this)">
+                        <div class="toggle-track"></div>
+                    </div>
+                    <span class="toggle-label" data-i18n="bold_label">Bold</span>
+                </label>
+
+                <label class="toggle-wrap" for="address-toggle">
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="address-toggle" onchange="toggleAddress(this)" checked>
+                        <div class="toggle-track"></div>
+                    </div>
+                    <span class="toggle-label" data-i18n="address_label">پته ښودل</span>
+                </label>
             </div>
 
-            <!-- Size Sliders -->
-            <div class="font-controls-grid">
-                <div class="slider-group">
-                    <label data-i18n="sl_info">لوړ معلومات</label>
+            <div class="divider"></div>
+
+            <!-- Row 2: Sliders -->
+            <div class="sliders-grid">
+                <div class="slider-item">
+                    <div class="slider-item-head">
+                        <label data-i18n="sl_info">لوړ معلومات</label>
+                        <span class="slider-val" id="val-info">2.0</span>
+                    </div>
                     <input type="range" id="size-info" min="1" max="4" step="0.1" value="2">
                 </div>
-                <div class="slider-group">
-                    <label data-i18n="sl_vitals">حیاتي نښې</label>
+                <div class="slider-item">
+                    <div class="slider-item-head">
+                        <label data-i18n="sl_vitals">حیاتي نښې</label>
+                        <span class="slider-val" id="val-vitals">1.8</span>
+                    </div>
                     <input type="range" id="size-vitals" min="1" max="4" step="0.1" value="1.8">
                 </div>
-                <div class="slider-group">
-                    <label data-i18n="sl_notes">یادښتونه</label>
+                <div class="slider-item">
+                    <div class="slider-item-head">
+                        <label data-i18n="sl_notes">یادښتونه</label>
+                        <span class="slider-val" id="val-notes">2.0</span>
+                    </div>
                     <input type="range" id="size-notes" min="1" max="4" step="0.1" value="2">
                 </div>
-                <div class="slider-group">
-                    <label data-i18n="sl_rx">نسخه (Rx)</label>
+                <div class="slider-item">
+                    <div class="slider-item-head">
+                        <label data-i18n="sl_rx">نسخه (Rx)</label>
+                        <span class="slider-val" id="val-rx">2.2</span>
+                    </div>
                     <input type="range" id="size-rx" min="1" max="5" step="0.1" value="2.2">
                 </div>
             </div>
-        </div>
 
-        <div class="prescription-container" id="prescriptionContainer">
-            <!-- DYNAMIC TOP BAND (Name, Age, Sex, Date) -->
-            <div id="top-bar-preview" class="txt-info"></div>
-
-            <!-- Left Column (Vitals) -->
-            <div id="prev-bp" class="overlay-text txt-vitals"></div>
-            <div id="prev-pr" class="overlay-text txt-vitals"></div>
-            <div id="prev-hr" class="overlay-text txt-vitals"></div>
-            <div id="prev-rr" class="overlay-text txt-vitals"></div>
-            <div id="prev-temp" class="overlay-text txt-vitals"></div>
-            <div id="prev-spo2" class="overlay-text txt-vitals"></div>
-            <div id="prev-weight" class="overlay-text txt-vitals"></div>
-
-            <!-- Text Areas -->
-            <div id="prev-record" class="overlay-text overlay-textarea txt-notes"></div>
-            <div id="prev-impression" class="overlay-text overlay-textarea txt-notes"></div>
-
-            <!-- Rx Area -->
-            <div id="prev-rx" class="overlay-text overlay-textarea txt-rx"></div>
-
-            <!-- DYNAMIC ADDRESS FOOTER -->
-            <div id="prev-footer">
-                <span class="footer-line">آدرس: از ساعت ۸ صبح الی ۳ عصر، ایستگاه اخیر مکروریان چهارم رنا مادرن کلینیک شاهین مارکیت</span>
-                <span class="footer-line">از ساعت ۳ ظهر الی ۸ شب کلینیک عمر گلستان، شهرک عمر گلستان مکروریان سوم</span>
-                <span class="footer-phone">Phone: 0778019660, 0788294148, 0728385404</span>
-            </div>
         </div>
     </div>
 
-    <!-- ==========================================
-         JAVASCRIPT LOGIC
-         ========================================== -->
-    <script>
-        // --- TRANSLATION DICTIONARY ---
-        const translations = {
-            en: {
-                title: "Create Prescription",
-                lang_label: "Format / Language",
-                sec_patient: "Patient Information",
-                lbl_name: "Name", ph_name: "Patient Name",
-                lbl_date: "Date - YYYY/MM/DD",
-                lbl_age: "Age / DOB", ph_age: "Age or DOB",
-                lbl_sex: "Sex", ph_sex: "Male / Female",
-                sec_vitals: "Vitals",
-                lbl_weight: "Weight",
-                sec_notes: "Clinical Notes",
-                lbl_record: "Clinical Record", ph_record: "Enter clinical record...",
-                lbl_impression: "Impression", ph_impression: "Enter impression...",
-                sec_rx: "Prescription (Rx)",
-                ph_rx: "1. Medicine A - 1x/day\n2. Medicine B - 2x/day",
-                btn_preview: "Preview & Print",
-                btn_edit: "Edit",
-                btn_print: "Normal Print",
-                btn_pdf: "Download PDF",
-                font_title: "Adjust Text Options Before Printing",
-                color_label: "Pen Color:",
-                bold_label: "Make All Text Bold",
-                address_label: "Show Address Footer",
-                sl_info: "Top Info", sl_vitals: "Vitals", sl_notes: "Notes", sl_rx: "Prescription (Rx)"
-            },
-            ps: {
-                title: "نسخه جوړول",
-                lang_label: "بڼه / ژبه (Format / Language)",
-                sec_patient: "د ناروغ معلومات",
-                lbl_name: "اسم", ph_name: "اسم مریض",
-                lbl_date: "تاریخ - YYYY/MM/DD",
-                lbl_age: "سن", ph_age: "سن مریض",
-                lbl_sex: "جنس", ph_sex: "نارینه / ښځینه",
-                sec_vitals: "حیاتي نښې",
-                lbl_weight: "وزن",
-                sec_notes: "کلینیکي یادښتونه",
-                lbl_record: "کلینیکي ریکارډ", ph_record: "کلینیکي ریکارډ ولیکئ...",
-                lbl_impression: "تشخیص (Impression)", ph_impression: "تشخیص ولیکئ...",
-                sec_rx: "نسخه (Rx)",
-                ph_rx: "1. Medicine A - 1x/day\n2. Medicine B - 2x/day",
-                btn_preview: "مخکتنه او چاپ",
-                btn_edit: "سمون (Edit)",
-                btn_print: "عادي چاپ",
-                btn_pdf: "PDF ډاونلوډ کړئ",
-                font_title: "د چاپ دمخه د متن اختیارونه تنظیم کړئ",
-                color_label: "د قلم رنګ:",
-                bold_label: "ټول متن روښانه (Bold) کړئ",
-                address_label: "پته ښودل (Show Address)",
-                sl_info: "لوړ معلومات", sl_vitals: "حیاتي نښې", sl_notes: "یادښتونه", sl_rx: "نسخه (Rx)"
-            }
-        };
+    <!-- The actual pad -->
+    <div class="prescription-container" id="prescriptionContainer">
+        <div id="top-bar-preview" class="txt-info"></div>
 
-        // --- 1. LANGUAGE & DATE INITIALIZATION ---
-        function updateLanguage() {
-            const lang = document.getElementById('lang-switch').value;
-            const dict = translations[lang];
+        <div id="prev-bp"     class="overlay-text txt-vitals"></div>
+        <div id="prev-pr"     class="overlay-text txt-vitals"></div>
+        <div id="prev-hr"     class="overlay-text txt-vitals"></div>
+        <div id="prev-rr"     class="overlay-text txt-vitals"></div>
+        <div id="prev-temp"   class="overlay-text txt-vitals"></div>
+        <div id="prev-spo2"   class="overlay-text txt-vitals"></div>
+        <div id="prev-weight" class="overlay-text txt-vitals"></div>
 
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if(dict[key]) el.innerText = dict[key];
-            });
+        <div id="prev-record"     class="overlay-text overlay-textarea txt-notes"></div>
+        <div id="prev-impression" class="overlay-text overlay-textarea txt-notes"></div>
+        <div id="prev-rx"         class="overlay-text overlay-textarea txt-rx"></div>
 
-            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-                const key = el.getAttribute('data-i18n-ph');
-                if(dict[key]) el.setAttribute('placeholder', dict[key]);
-            });
+        <div id="prev-footer">
+            <div id="prev-address">
+                <span class="footer-line">کلینیک عمر گلستان، شهرک عمر گلستان مکروریان سوم</span>
+            </div>
+            <span id="prev-phone" class="footer-phone">Phone: +93 778019660 &nbsp;|&nbsp; +93 788294148 &nbsp;|&nbsp; +93 728385404</span>
+        </div>
+    </div>
+</div>
 
-            const dir = lang === 'ps' ? 'rtl' : 'ltr';
-            document.getElementById('form-name').dir = dir;
-            document.getElementById('form-sex').dir = dir;
-            document.getElementById('form-record').dir = dir;
-            document.getElementById('form-impression').dir = dir;
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
-            try {
-                const date = new Date();
-                let formatter;
-                if(lang === 'ps') {
-                    formatter = new Intl.DateTimeFormat('en-US-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                } else {
-                    formatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                }
-                const parts = formatter.formatToParts(date);
-                const year = parts.find(p => p.type === 'year').value;
-                const month = parts.find(p => p.type === 'month').value;
-                const day = parts.find(p => p.type === 'day').value;
-                
-                document.getElementById('form-date').value = `${year}/${month}/${day}`;
-            } catch (e) {
-                console.error("Calendar format not supported by browser, leaving blank.");
-            }
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+<script>
+    /* ---- Translation dictionary ---- */
+    const T = {
+        en: {
+            sec_patient:"Patient Information", lbl_name:"Name", ph_name:"Patient Name",
+            lbl_date:"Date - YYYY/MM/DD", lbl_age:"Age / DOB", ph_age:"Age or DOB",
+            lbl_sex:"Sex", ph_sex:"Male / Female",
+            sec_vitals:"Vitals", lbl_weight:"Weight",
+            sec_notes:"Clinical Notes",
+            lbl_record:"Clinical Record", ph_record:"Enter clinical record...",
+            lbl_impression:"Impression", ph_impression:"Enter impression...",
+            sec_rx:"Prescription (Rx)", ph_rx:"1. Medicine A - 1x/day\n2. Medicine B - 2x/day",
+            btn_preview:"Preview & Print", btn_edit:"Edit",
+            btn_print:"Normal Print", btn_pdf:"Download PDF",
+            font_title:"Text Options Before Printing",
+            color_label:"Pen Color:", bold_label:"Bold All", address_label:"Show Address",
+            sl_info:"Top Info", sl_vitals:"Vitals", sl_notes:"Notes", sl_rx:"Prescription",
+            sec_address:"Address & Contact", lbl_address:"Clinic Address", lbl_phone:"Phone Numbers"
+        },
+        ps: {
+            sec_patient:"د ناروغ معلومات", lbl_name:"اسم", ph_name:"اسم مریض",
+            lbl_date:"تاریخ - YYYY/MM/DD", lbl_age:"سن", ph_age:"سن مریض",
+            lbl_sex:"جنس", ph_sex:"نارینه / ښځینه",
+            sec_vitals:"حیاتي نښې", lbl_weight:"وزن",
+            sec_notes:"کلینیکي یادښتونه",
+            lbl_record:"کلینیکي ریکارډ", ph_record:"کلینیکي ریکارډ ولیکئ...",
+            lbl_impression:"تشخیص (Impression)", ph_impression:"تشخیص ولیکئ...",
+            sec_rx:"نسخه (Rx)", ph_rx:"1. Medicine A - 1x/day\n2. Medicine B - 2x/day",
+            btn_preview:"مخکتنه او چاپ", btn_edit:"سمون (Edit)",
+            btn_print:"عادي چاپ", btn_pdf:"PDF ډاونلوډ کړئ",
+            font_title:"د چاپ دمخه د متن اختیارونه",
+            color_label:"د قلم رنګ:", bold_label:"ټول Bold کړئ", address_label:"پته ښودل",
+            sl_info:"لوړ معلومات", sl_vitals:"حیاتي نښې", sl_notes:"یادښتونه", sl_rx:"نسخه (Rx)",
+            sec_address:"آدرس او تلیفون", lbl_address:"د کلینیک آدرس", lbl_phone:"د تلیفون شمیرې"
         }
+    };
 
-        window.addEventListener('DOMContentLoaded', updateLanguage);
+    let currentLang = 'ps';
 
-        document.getElementById('form-date').addEventListener('input', function(e) {
-            let val = e.target.value.replace(/[^\d۰-۹٠-٩]/g, ''); 
-            let formatted = '';
-            if (val.length > 0) { formatted += val.substring(0, 4); }
-            if (val.length > 4) { formatted += '/' + val.substring(4, 6); }
-            if (val.length > 6) { formatted += '/' + val.substring(6, 8); }
-            e.target.value = formatted;
+    function switchLang(lang) {
+        currentLang = lang;
+        const dict = T[lang];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const k = el.getAttribute('data-i18n');
+            if (dict[k]) el.textContent = dict[k];
+        });
+        document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+            const k = el.getAttribute('data-i18n-ph');
+            if (dict[k]) el.setAttribute('placeholder', dict[k]);
+        });
+        const dir = lang === 'ps' ? 'rtl' : 'ltr';
+        ['form-name','form-sex','form-record','form-impression'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.dir = dir;
+        });
+        document.getElementById('lang-ps').classList.toggle('active', lang === 'ps');
+        document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+        setAutoDate(lang);
+    }
+
+    function setAutoDate(lang) {
+        try {
+            const date = new Date();
+            let fmt;
+            if (lang === 'ps') {
+                fmt = new Intl.DateTimeFormat('en-US-u-ca-persian', {year:'numeric',month:'2-digit',day:'2-digit'});
+            } else {
+                fmt = new Intl.DateTimeFormat('en-US', {year:'numeric',month:'2-digit',day:'2-digit'});
+            }
+            const p = fmt.formatToParts(date);
+            const y = p.find(x=>x.type==='year').value;
+            const m = p.find(x=>x.type==='month').value;
+            const d = p.find(x=>x.type==='day').value;
+            document.getElementById('form-date').value = `${y}/${m}/${d}`;
+        } catch(e) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        switchLang('ps');
+        initSliders();
+    });
+
+    /* Auto-format date input */
+    document.getElementById('form-date').addEventListener('input', function(e) {
+        let v = e.target.value.replace(/[^\d۰-۹٠-٩]/g,'');
+        let f = '';
+        if (v.length > 0) f += v.substring(0,4);
+        if (v.length > 4) f += '/' + v.substring(4,6);
+        if (v.length > 6) f += '/' + v.substring(6,8);
+        e.target.value = f;
+    });
+
+    /* ---- Live controls ---- */
+    const rs = document.documentElement.style;
+
+    function setPenColor(color, btn) {
+        rs.setProperty('--pen-color', color);
+        document.querySelectorAll('.swatch').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function toggleBold(cb) {
+        document.getElementById('prescriptionContainer').classList.toggle('force-bold', cb.checked);
+    }
+
+    function toggleAddress(cb) {
+        document.getElementById('prev-address').style.display = cb.checked ? 'flex' : 'none';
+    }
+
+    function initSliders() {
+        const sliders = [
+            { id:'size-info',   cssVar:'--size-info',   valEl:'val-info' },
+            { id:'size-vitals', cssVar:'--size-vitals', valEl:'val-vitals' },
+            { id:'size-notes',  cssVar:'--size-notes',  valEl:'val-notes' },
+            { id:'size-rx',     cssVar:'--size-rx',     valEl:'val-rx' },
+        ];
+        sliders.forEach(({id, cssVar, valEl}) => {
+            const el = document.getElementById(id);
+            const disp = document.getElementById(valEl);
+            el.addEventListener('input', e => {
+                rs.setProperty(cssVar, e.target.value + 'cqw');
+                if (disp) disp.textContent = parseFloat(e.target.value).toFixed(1);
+            });
+        });
+    }
+
+    /* ---- View switching ---- */
+    function generatePreview() {
+        const map = [
+            ['form-bp','prev-bp'],['form-pr','prev-pr'],['form-hr','prev-hr'],
+            ['form-rr','prev-rr'],['form-temp','prev-temp'],['form-spo2','prev-spo2'],
+            ['form-weight','prev-weight'],['form-record','prev-record'],
+            ['form-impression','prev-impression'],['form-rx','prev-rx']
+        ];
+        map.forEach(([fid, pid]) => {
+            const f = document.getElementById(fid);
+            const p = document.getElementById(pid);
+            if (f && p) p.innerText = f.value;
         });
 
-        // --- 3. Live Font & Display Options ---
-        const rootVars = document.documentElement.style;
-        
-        function setPenColor(color, btnElement) {
-            rootVars.setProperty('--pen-color', color);
-            document.querySelectorAll('.color-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
-        }
+        const dict = T[currentLang];
+        const topBar = document.getElementById('top-bar-preview');
+        topBar.dir = currentLang === 'ps' ? 'rtl' : 'ltr';
 
-        function toggleBold(checkbox) {
+        const name = document.getElementById('form-name').value;
+        const age  = document.getElementById('form-age').value;
+        const sex  = document.getElementById('form-sex').value;
+        const date = document.getElementById('form-date').value;
+
+        topBar.innerHTML = `
+            <div class="top-bar-item">
+                <span class="top-bar-label">${dict.lbl_name}:</span>
+                <span class="top-bar-value">${name}</span>
+            </div>
+            <div class="top-bar-item">
+                <span class="top-bar-label">${dict.lbl_age}:</span>
+                <span class="top-bar-value">${age}</span>
+            </div>
+            <div class="top-bar-item">
+                <span class="top-bar-label">${dict.lbl_sex}:</span>
+                <span class="top-bar-value">${sex}</span>
+            </div>
+            <div class="top-bar-item">
+                <span class="top-bar-label">${currentLang==='ps'?'تاریخ':'Date'}:</span>
+                <span class="top-bar-value">${date}</span>
+            </div>`;
+
+        document.getElementById('form-view').style.display = 'none';
+        document.getElementById('preview-view').style.display = 'flex';
+        window.scrollTo(0, 0);
+
+        // Update address & phone from form inputs
+        const addrEl = document.getElementById('prev-address');
+        const phoneEl = document.getElementById('prev-phone');
+        const addrVal = document.getElementById('form-address').value.trim();
+        const phoneVal = document.getElementById('form-phone').value.trim();
+
+        addrEl.innerHTML = addrVal
+            ? `<span class="footer-line">${addrVal.replace(/\n/g, '<br>')}</span>`
+            : '';
+        phoneEl.textContent = phoneVal ? 'Phone: ' + phoneVal : '';
+    }
+
+    function backToEdit() {
+        document.getElementById('preview-view').style.display = 'none';
+        document.getElementById('form-view').style.display = 'flex';
+    }
+
+    /* ---- Toast ---- */
+    function showToast(msg, icon = '✓') {
+        const el = document.getElementById('toast');
+        el.innerHTML = `<span>${icon}</span>${msg}`;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 2800);
+    }
+
+    /* ---- HD PDF Generation ---- */
+    async function downloadPDF() {
+        const btn    = document.getElementById('btn-download');
+        const spinner = document.getElementById('pdf-spinner');
+        const icon   = document.getElementById('pdf-icon');
+        const txt    = document.getElementById('pdf-btn-text');
+
+        btn.disabled = true;
+        spinner.style.display = 'block';
+        icon.style.display    = 'none';
+        txt.textContent       = 'Generating…';
+
+        try {
+            const { jsPDF } = window.jspdf;
             const container = document.getElementById('prescriptionContainer');
-            if(checkbox.checked) { container.classList.add('force-bold'); } 
-            else { container.classList.remove('force-bold'); }
-        }
 
-        function toggleAddress(checkbox) {
-            const footer = document.getElementById('prev-footer');
-            if(checkbox.checked) { footer.style.display = 'flex'; } 
-            else { footer.style.display = 'none'; }
-        }
+            /* Force pixel-exact size for capture */
+            const savedW = container.style.width;
+            const savedMW = container.style.maxWidth;
+            container.style.width    = '800px';
+            container.style.maxWidth = '800px';
 
-        document.getElementById('size-info').addEventListener('input', e => rootVars.setProperty('--size-info', e.target.value + 'cqw'));
-        document.getElementById('size-vitals').addEventListener('input', e => rootVars.setProperty('--size-vitals', e.target.value + 'cqw'));
-        document.getElementById('size-notes').addEventListener('input', e => rootVars.setProperty('--size-notes', e.target.value + 'cqw'));
-        document.getElementById('size-rx').addEventListener('input', e => rootVars.setProperty('--size-rx', e.target.value + 'cqw'));
+            /* Brief layout settle */
+            await new Promise(r => setTimeout(r, 150));
 
-        // --- 4. View Switching and Data Transfer ---
-        function generatePreview() {
-            const fields = [
-                { form: 'form-bp', prev: 'prev-bp' },
-                { form: 'form-pr', prev: 'prev-pr' },
-                { form: 'form-hr', prev: 'prev-hr' },
-                { form: 'form-rr', prev: 'prev-rr' },
-                { form: 'form-temp', prev: 'prev-temp' },
-                { form: 'form-spo2', prev: 'prev-spo2' },
-                { form: 'form-weight', prev: 'prev-weight' },
-                { form: 'form-record', prev: 'prev-record' },
-                { form: 'form-impression', prev: 'prev-impression' },
-                { form: 'form-rx', prev: 'prev-rx' }
-            ];
-
-            fields.forEach(field => {
-                const formElement = document.getElementById(field.form);
-                const prevElement = document.getElementById(field.prev);
-                if (formElement && prevElement) prevElement.innerText = formElement.value;
+            /*
+             * QUALITY FIX:
+             * - scale: 6  →  4800px wide capture at 300ppi equivalent
+             * - PNG (lossless) instead of JPEG — zero compression artifacts on text
+             * - imageCompression via addImage quality = 1.0
+             */
+            const canvas = await html2canvas(container, {
+                scale:           6,
+                useCORS:         true,
+                backgroundColor: '#ffffff',
+                logging:         false,
+                allowTaint:      false
             });
 
-            // Top Bar
-            const lang = document.getElementById('lang-switch').value;
-            const topBar = document.getElementById('top-bar-preview');
-            topBar.dir = lang === 'ps' ? 'rtl' : 'ltr';
+            container.style.width    = savedW;
+            container.style.maxWidth = savedMW;
 
-            const dict = translations[lang];
-            const nameVal = document.getElementById('form-name').value;
-            const ageVal = document.getElementById('form-age').value;
-            const sexVal = document.getElementById('form-sex').value;
-            const dateVal = document.getElementById('form-date').value;
+            const imgData = canvas.toDataURL('image/png');   // lossless
+            const pdf     = new jsPDF({ orientation:'p', unit:'mm', format:'a4' });
+            pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, '', 'FAST');
+            pdf.save('Prescription.pdf');
 
-            topBar.innerHTML = `
-                <div class="top-bar-item">
-                    <span class="top-bar-label">${dict.lbl_name}:</span>
-                    <span class="top-bar-value">${nameVal}</span>
-                </div>
-                <div class="top-bar-item">
-                    <span class="top-bar-label">${dict.lbl_age}:</span>
-                    <span class="top-bar-value">${ageVal}</span>
-                </div>
-                <div class="top-bar-item">
-                    <span class="top-bar-label">${dict.lbl_sex}:</span>
-                    <span class="top-bar-value">${sexVal}</span>
-                </div>
-                <div class="top-bar-item">
-                    <span class="top-bar-label">${lang === 'ps' ? 'تاریخ' : 'Date'}:</span>
-                    <span class="top-bar-value">${dateVal}</span>
-                </div>
-            `;
-
-            document.getElementById('form-view').style.display = 'none';
-            document.getElementById('preview-view').style.display = 'flex';
-            window.scrollTo(0, 0);
+            showToast('PDF saved successfully');
+        } catch(err) {
+            console.error(err);
+            showToast('PDF error — please retry', '✕');
+        } finally {
+            btn.disabled          = false;
+            spinner.style.display = 'none';
+            icon.style.display    = 'block';
+            txt.setAttribute('data-i18n', 'btn_pdf');
+            txt.textContent = T[currentLang].btn_pdf;
         }
-
-        function backToEdit() {
-            document.getElementById('preview-view').style.display = 'none';
-            document.getElementById('form-view').style.display = 'flex';
-        }
-
-        // --- 5. HIGH-RES PDF GENERATION ---
-        async function downloadPDF() {
-            const btn = document.getElementById('btn-download');
-            const originalText = btn.innerHTML;
-            
-            btn.innerHTML = '⏳ Generating HD PDF...';
-            btn.disabled = true;
-
-            try {
-                const { jsPDF } = window.jspdf;
-                const container = document.getElementById('prescriptionContainer');
-                
-                const origWidth = container.style.width;
-                const origMaxWidth = container.style.maxWidth;
-                container.style.width = '800px';
-                container.style.maxWidth = '800px';
-
-                await new Promise(r => setTimeout(r, 100));
-
-                // Ultra HD Scale (4x) completely solves the "bad quality print" issue
-                const canvas = await html2canvas(container, {
-                    scale: 4, 
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    logging: false
-                });
-
-                container.style.width = origWidth;
-                container.style.maxWidth = origMaxWidth;
-
-                // High Quality JPEG Compression inside the PDF
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const pdf = new jsPDF('p', 'mm', 'a4'); 
-                
-                pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-                pdf.save('Prescription.pdf');
-                
-            } catch (error) {
-                console.error("PDF Generation Error:", error);
-                alert('An error occurred while generating the PDF. Please try again.');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
-
