@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -380,10 +379,28 @@
             color: #fff;
             padding: 16px 20px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
         }
         .modal-header h3 { font-size: 1rem; margin: 0; display: flex; align-items: center; gap: 8px;}
+        
+        .modal-lang-toggle {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto; /* Pushes to the right */
+            margin-right: 12px;
+        }
+        .modal-lang-toggle:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
         .btn-close-modal {
             background: rgba(255,255,255,0.1);
             border: none;
@@ -392,6 +409,7 @@
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: background 0.2s;
+            flex-shrink: 0;
         }
         .btn-close-modal:hover { background: rgba(255,255,255,0.2); }
 
@@ -475,7 +493,8 @@
 
         .force-bold .overlay-section-head, .force-bold .overlay-section-body, .force-bold .overlay-text, .force-bold .overlay-textarea, .force-bold .top-bar-value, .force-bold .top-bar-label, .force-bold .footer-line, .force-bold .vital-line span, .force-bold .rx-name, .force-bold .rx-row-2 { font-weight: 700 !important; }
 
-        #prev-footer { position: absolute; bottom: 5.5%; left: 5%; width: 90%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 10; color: var(--pen-color); font-family: 'Outfit', 'Noto Naskh Arabic', sans-serif; }
+        /* Shifted down a tiny bit for better alignment */
+        #prev-footer { position: absolute; bottom: 4.2%; left: 5%; width: 90%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; z-index: 10; color: var(--pen-color); font-family: 'Outfit', 'Noto Naskh Arabic', sans-serif; }
         #prev-address { display: flex; flex-direction: column; align-items: center; }
         .footer-line  { font-size: var(--size-footer); line-height: 1.4; }
         .footer-phone { font-size: calc(var(--size-footer) * 0.9); direction: ltr; margin-top: 4px; font-weight: 700; }
@@ -721,6 +740,7 @@
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                 د چاپ دمخه د متن اختیارونه
             </h3>
+            <button id="modal-lang-toggle" class="modal-lang-toggle" onclick="toggleLanguage()">EN</button>
             <button class="btn-close-modal" onclick="closeSettings()">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
@@ -872,6 +892,11 @@
         document.getElementById('lang-ps').classList.toggle('active', lang === 'ps');
         document.getElementById('lang-en').classList.toggle('active', lang === 'en');
         
+        const modalToggle = document.getElementById('modal-lang-toggle');
+        if (modalToggle) {
+            modalToggle.textContent = lang === 'en' ? 'پښتو' : 'EN';
+        }
+
         // Update dynamic Rx fields
         document.getElementById('btn-add-rx').textContent = dict.btn_add_rx;
         document.querySelectorAll('.rx-entry').forEach((entry, idx) => {
@@ -881,6 +906,11 @@
             entry.querySelector('.rx-instructions').placeholder = dict.ph_instructions;
             entry.querySelector('.rx-instructions').dir = dir;
         });
+    }
+
+    function toggleLanguage() {
+        const targetLang = currentLang === 'ps' ? 'en' : 'ps';
+        switchLang(targetLang);
     }
 
     function setCalendarToggle(isPersian) {
